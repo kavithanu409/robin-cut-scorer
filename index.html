@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V31</title>
+<title>ROBIN CUT SCORER V32</title>
 <style>
 nav button, button, select, input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 nav button { pointer-events: auto; }
@@ -19,7 +19,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V31</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V32</p></header>
 <nav>
 <button type="button" class="active" onclick="show('dashboard',this)">Dashboard</button>
 <button type="button" onclick="show('connection',this)">Connection</button>
@@ -372,6 +372,7 @@ function fillTournamentAndFixtureFromTeams(teams){
    fillTournamentSelect(derived);
    fillFixtureSelects();
  }
+}
 async function createTeam(){
  const name=document.getElementById('teamName').value.trim();
  const tournament_id=document.getElementById('teamTournament').value;
