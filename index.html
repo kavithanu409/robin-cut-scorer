@@ -122,7 +122,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V26 connection tests…','info');
+ setStatus('connStatus','Running V27 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
@@ -192,7 +192,7 @@ async function rest(table){
 
 async function refreshAll(){
  for(const [name,table] of Object.entries(tables)){try{const data=await rest(table);render(name,data)}catch(e){render(name,[],e.message)}}
- try{const teams=await rest('teams');fillTeamSelect(teams)}catch(e){}
+ try{const teams=await rest('teams');cacheTeams(teams);fillTeamSelect(teams)}catch(e){}
  setStatus('dashStatus','✓ Supabase connection is working.','ok')
 }
 function render(name,data,err){
@@ -223,6 +223,28 @@ function render(name,data,err){
  el.innerHTML='<div class="small">'+data.length+' record(s) loaded from Supabase.</div>';
 }
 
+function cacheTeams(data){
+ try{localStorage.setItem('RCS_TEAM_CACHE',JSON.stringify(data||[]))}catch(e){}
+}
+function getCachedTeams(){
+ try{return JSON.parse(localStorage.getItem('RCS_TEAM_CACHE')||'[]')}catch(e){return []}
+}
+async function loadPlayerTeams(){
+ const s=document.getElementById('playerTeam');
+ if(!s)return;
+ const c=cfg();
+ if(!c.key){fillTeamSelect([]);return}
+ try{
+   const data=await Promise.race([rest('teams'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('team load timeout')),8000))]);
+   cacheTeams(data);
+   fillTeamSelect(data);
+   if(!data.length)setStatus('playerStatus','No teams found in Supabase. Create a team first.','info');
+ }catch(e){
+   const cached=getCachedTeams();
+   if(cached.length){fillTeamSelect(cached);setStatus('playerStatus','Teams loaded from saved app data.','info');}
+   else{fillTeamSelect([]);setStatus('playerStatus','Could not load teams: '+esc(e.message),'err');}
+ }
+}
 function fillTeamSelect(data){
  const s=document.getElementById('playerTeam'); if(!s)return;
  const current=s.value;
@@ -304,12 +326,8 @@ function show(id,btn){
  }
  if(id==='players'){
   const c=cfg();
-  if(c.key){
-   rest('teams').then(d=>{
-    fillTeamSelect(d);
-    if(!d.length)setStatus('playerStatus','No teams found in Supabase. Create a team first.','info');
-   }).catch(e=>setStatus('playerStatus','Could not load teams: '+esc(e.message),'err'));
-  }else{
+  if(c.key){ loadPlayerTeams(); }
+  else{
    fillTeamSelect([]);
    setStatus('playerStatus','Saved Supabase key was not found. Open Connection once and load it.','err');
   }
@@ -332,7 +350,7 @@ window.addEventListener('load',()=>{
      try{ const d=await Promise.race([
        rest('teams'),
        new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
-     ]); fillTeamSelect(d);
+     ]); cacheTeams(d); fillTeamSelect(d);
      }catch(e){}
    },1200);
  }
