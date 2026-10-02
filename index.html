@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V17</title>
+<title>ROBIN CUT SCORER V19</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{background:#111827;color:white;padding:24px 18px 20px}header h1{margin:0;font-size:30px}header p{margin:7px 0 0;color:#cbd5e1}
@@ -16,7 +16,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V17</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V19</p></header>
 <nav>
 <button class="active" onclick="show('dashboard',this)">Dashboard</button>
 <button onclick="show('connection',this)">Connection</button>
@@ -27,7 +27,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V17 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V19 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -42,7 +42,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <div id="diagnostics"></div>
 </div>
 <div class="card">
-<h3>What V17 checks</h3>
+<h3>What V19 checks</h3>
 <p class="small">1. URL format → 2. browser can reach Supabase → 3. REST endpoint response → 4. rcs_tournaments table → 5. browser origin/network details → 6. tournament/team data path.</p>
 <p class="small"><b>No schema reset is performed by this page.</b></p>
 </div>
@@ -60,11 +60,29 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <div id="teamList"></div>
 </div>
 </section>
-<section id="players" class="hidden"><div class="card"><h2>Players</h2><div id="playerList"></div></div></section>
+<section id="players" class="hidden">
+<div class="card">
+<h2>Players</h2>
+<p class="small">Add players to a team. Players are saved directly in Supabase.</p>
+<label>Team</label><select id="playerTeam"></select>
+<label>Player name</label><input id="playerName" placeholder="e.g. M. Suresh">
+<label>Player role</label>
+<select id="playerRole">
+<option value="Batter">Batter</option>
+<option value="Bowler">Bowler</option>
+<option value="All-rounder">All-rounder</option>
+<option value="Wicket-keeper">Wicket-keeper</option>
+</select>
+<label>Jersey number (optional)</label><input id="playerJersey" inputmode="numeric" placeholder="e.g. 7">
+<button class="primary" onclick="createPlayer()">Create Player</button>
+<div id="playerStatus"></div>
+<div id="playerList"></div>
+</div>
+</section>
 <section id="fixtures" class="hidden"><div class="card"><h2>Fixtures &amp; Matches</h2><div id="fixtureList"></div></div></section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V17';
+const LS='ROBIN_CUT_SCORER_V19';
 const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 const OLD_URL='https://oszjutmbgnllxjicljob.supabase.co';
 const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
@@ -84,7 +102,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V17 connection tests…','info');
+ setStatus('connStatus','Running V19 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
@@ -167,13 +185,57 @@ function render(name,data,err){
    return;
  }
  if(name==='teams'){
+   fillTeamSelect(data);
    if(!data.length){el.innerHTML='<p class="small">No teams yet. Create the first team above.</p>';return}
    el.innerHTML='<div class="small">'+data.length+' team(s) loaded from Supabase.</div>'+data.map((t,i)=>'<div class="diag"><b>'+(i+1)+'. '+esc(t.name)+'</b><div class="small">Team ID: '+esc(t.id)+'</div></div>').join('');
+   return;
+ }
+ if(name==='players'){
+   if(!data.length){el.innerHTML='<p class="small">No players yet. Create the first player above.</p>';return}
+   const teamNames=[...document.querySelectorAll('#playerTeam option')].reduce((m,o)=>(m[o.value]=o.textContent,m),{});
+   el.innerHTML='<div class="small">'+data.length+' player(s) loaded from Supabase.</div>'+
+     data.map((p,i)=>'<div class="diag"><b>'+(i+1)+'. '+esc(p.name)+'</b><div class="small">Team: '+esc(teamNames[p.team_id]||p.team_id||'—')+
+     (p.role?' · Role: '+esc(p.role):'')+(p.jersey_no!=null?' · Jersey: '+esc(p.jersey_no):'')+'</div></div>').join('');
    return;
  }
  if(!data.length){el.innerHTML='<p class="small">No records yet.</p>';return}
  el.innerHTML='<div class="small">'+data.length+' record(s) loaded from Supabase.</div>';
 }
+
+function fillTeamSelect(data){
+ const s=document.getElementById('playerTeam'); if(!s)return;
+ const current=s.value;
+ s.innerHTML=data.length?data.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a team first</option>';
+ if(current && [...s.options].some(o=>o.value===current))s.value=current;
+}
+async function createPlayer(){
+ const name=document.getElementById('playerName').value.trim();
+ const team_id=document.getElementById('playerTeam').value;
+ const role=document.getElementById('playerRole').value;
+ const jerseyRaw=document.getElementById('playerJersey').value.trim();
+ const c=cfg();
+ if(!team_id){setStatus('playerStatus','Create/select a team first.','err');return}
+ if(!name){setStatus('playerStatus','Enter a player name.','err');return}
+ if(!c.url||!c.key){setStatus('playerStatus','Run the Supabase connection test first.','err');return}
+ try{
+   // Keep the first insert compatible with the core schema: name + team_id.
+   // If the schema has optional role/jersey columns, retry with those fields.
+   const base={name,team_id};
+   let r=await timedFetch(c.url+'/rest/v1/rcs_players',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(base)});
+   let t=await r.text();
+   if(!r.ok && (role || jerseyRaw)){
+     const payload={name,team_id,role,jersey_no:jerseyRaw?Number(jerseyRaw):null};
+     r=await timedFetch(c.url+'/rest/v1/rcs_players',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});
+     t=await r.text();
+   }
+   if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));
+   document.getElementById('playerName').value='';
+   document.getElementById('playerJersey').value='';
+   setStatus('playerStatus','✓ Player created.','ok');
+   refreshAll();
+ }catch(e){setStatus('playerStatus','Create failed: '+esc(e.message),'err')}
+}
+
 function fillTournamentSelect(data){
  const s=document.getElementById('teamTournament'); if(!s)return;
  const current=s.value;
@@ -202,7 +264,7 @@ async function createTournament(){
  const name=document.getElementById('tName').value.trim(),c=cfg();if(!name){setStatus('tStatus','Enter a tournament name.','err');return}if(!c.url||!c.key){setStatus('tStatus','Run the Supabase connection test first.','err');return}
  try{let r;try{r=await timedFetch(c.url+'/rest/v1/rcs_tournaments',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({name})})}catch(first){r=await timedFetch(c.url+'/rest/v1/rcs_tournaments?apikey='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({name})})}const t=await r.text();if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));setStatus('tStatus','✓ Tournament created.','ok');document.getElementById('tName').value='';refreshAll()}catch(e){setStatus('tStatus','Create failed: '+esc(e.message),'err')}
 }
-function show(id,btn){document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active')}
+function show(id,btn){ if(id==='players'){ try{rest('teams').then(d=>fillTeamSelect(d)).catch(()=>{});}catch(e){} }document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active')}
 function showById(id){show(id,[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id.slice(0,-1))))}
 window.addEventListener('load',()=>{loadSaved();const c=cfg();if(c.url&&c.key)setTimeout(runDiagnostics,300)})
 </script>
