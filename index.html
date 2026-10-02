@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V19</title>
+<title>ROBIN CUT SCORER V20</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{background:#111827;color:white;padding:24px 18px 20px}header h1{margin:0;font-size:30px}header p{margin:7px 0 0;color:#cbd5e1}
@@ -16,7 +16,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V19</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V20</p></header>
 <nav>
 <button class="active" onclick="show('dashboard',this)">Dashboard</button>
 <button onclick="show('connection',this)">Connection</button>
@@ -27,7 +27,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V19 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V20 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -42,7 +42,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <div id="diagnostics"></div>
 </div>
 <div class="card">
-<h3>What V19 checks</h3>
+<h3>What V20 checks</h3>
 <p class="small">1. URL format → 2. browser can reach Supabase → 3. REST endpoint response → 4. rcs_tournaments table → 5. browser origin/network details → 6. tournament/team data path.</p>
 <p class="small"><b>No schema reset is performed by this page.</b></p>
 </div>
@@ -82,19 +82,30 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <section id="fixtures" class="hidden"><div class="card"><h2>Fixtures &amp; Matches</h2><div id="fixtureList"></div></div></section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V19';
+const LS='ROBIN_CUT_SCORER_V20';
 const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 const OLD_URL='https://oszjutmbgnllxjicljob.supabase.co';
+const LEGACY_KEYS=['ROBIN_CUT_SCORER_V20','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
 const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
-function cfg(){try{return JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){return {}}}
+function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return {}}}
+function cfg(){
+ const cur=readStored(LS);
+ if(cur.key)return {...cur,url:cur.url===OLD_URL?VERIFIED_URL:(cur.url||VERIFIED_URL)};
+ for(const k of LEGACY_KEYS){
+  const v=readStored(k);
+  if(v.key){const migrated={...v,url:v.url===OLD_URL?VERIFIED_URL:(v.url||VERIFIED_URL)};try{localStorage.setItem(LS,JSON.stringify(migrated))}catch(e){};return migrated;}
+ }
+ return {url:VERIFIED_URL,key:''};
+}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function setStatus(id,msg,type){const e=document.getElementById(id);e.className='status '+type;e.innerHTML=msg}
 function normalize(u){return (u||'').trim().replace(/\/+$/,'')}
 function addDiag(title,value,type='info'){document.getElementById('diagnostics').insertAdjacentHTML('beforeend','<div class="diag"><b>'+esc(title)+'</b><div class="mono">'+esc(value)+'</div></div>')}
-function loadSaved(){let c=cfg(); if(c.url===OLD_URL){c.url=VERIFIED_URL; localStorage.setItem(LS,JSON.stringify(c));} document.getElementById('url').value=c.url||VERIFIED_URL;document.getElementById('key').value=c.key||'';setStatus('connStatus',c.url?'Saved connection loaded. Run Full Connection Test.':'Verified Supabase URL loaded. Enter your publishable key.','info')}
-async function timedFetch(url,opts={},ms=10000){
- const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),ms);
- try{return await fetch(url,{...opts,signal:ctl.signal,cache:'no-store'})}finally{clearTimeout(timer)}
+function loadSaved(){
+ const c=cfg();
+ document.getElementById('url').value=c.url||VERIFIED_URL;
+ document.getElementById('key').value=c.key||'';
+ setStatus('connStatus',c.key?'Saved connection loaded.':'Verified Supabase URL loaded. Enter your publishable key.','info');
 }
 async function runDiagnostics(){
  const u=normalize(document.getElementById('url').value),k=document.getElementById('key').value.trim();
@@ -102,7 +113,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V19 connection tests…','info');
+ setStatus('connStatus','Running V20 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
@@ -172,6 +183,7 @@ async function rest(table){
 
 async function refreshAll(){
  for(const [name,table] of Object.entries(tables)){try{const data=await rest(table);render(name,data)}catch(e){render(name,[],e.message)}}
+ try{const teams=await rest('teams');fillTeamSelect(teams)}catch(e){}
  setStatus('dashStatus','✓ Supabase connection is working.','ok')
 }
 function render(name,data,err){
@@ -264,7 +276,24 @@ async function createTournament(){
  const name=document.getElementById('tName').value.trim(),c=cfg();if(!name){setStatus('tStatus','Enter a tournament name.','err');return}if(!c.url||!c.key){setStatus('tStatus','Run the Supabase connection test first.','err');return}
  try{let r;try{r=await timedFetch(c.url+'/rest/v1/rcs_tournaments',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({name})})}catch(first){r=await timedFetch(c.url+'/rest/v1/rcs_tournaments?apikey='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({name})})}const t=await r.text();if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));setStatus('tStatus','✓ Tournament created.','ok');document.getElementById('tName').value='';refreshAll()}catch(e){setStatus('tStatus','Create failed: '+esc(e.message),'err')}
 }
-function show(id,btn){ if(id==='players'){ try{rest('teams').then(d=>fillTeamSelect(d)).catch(()=>{});}catch(e){} }document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById(id).classList.remove('hidden');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active')}
+function show(id,btn){
+ document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));
+ const sec=document.getElementById(id); if(sec)sec.classList.remove('hidden');
+ document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+ if(btn)btn.classList.add('active');
+ if(id==='players'){
+  const c=cfg();
+  if(c.key){
+   rest('teams').then(d=>{
+    fillTeamSelect(d);
+    if(!d.length)setStatus('playerStatus','No teams found in Supabase. Create a team first.','info');
+   }).catch(e=>setStatus('playerStatus','Could not load teams: '+esc(e.message),'err'));
+  }else{
+   fillTeamSelect([]);
+   setStatus('playerStatus','Saved Supabase key was not found. Open Connection once and load it.','err');
+  }
+ }
+}
 function showById(id){show(id,[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id.slice(0,-1))))}
 window.addEventListener('load',()=>{loadSaved();const c=cfg();if(c.url&&c.key)setTimeout(runDiagnostics,300)})
 </script>
