@@ -3,8 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V22</title>
+<title>ROBIN CUT SCORER V23</title>
 <style>
+nav button, button, select, input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+nav button { pointer-events: auto; }
+
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{background:#111827;color:white;padding:24px 18px 20px}header h1{margin:0;font-size:30px}header p{margin:7px 0 0;color:#cbd5e1}
 nav{display:flex;gap:10px;overflow:auto;background:#fff;padding:14px;border-bottom:1px solid #dbe3ee}nav button{white-space:nowrap;border:1px solid #dbe3ee;background:#fff;color:#2879ed;border-radius:14px;padding:12px 18px;font-weight:800;font-size:16px}nav button.active{background:#3d8d55;color:#fff;border-color:#3d8d55}
@@ -16,7 +19,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V22</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V23</p></header>
 <nav>
 <button class="active" onclick="show('dashboard',this)">Dashboard</button>
 <button onclick="show('connection',this)">Connection</button>
@@ -27,7 +30,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V22 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V23 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -42,7 +45,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <div id="diagnostics"></div>
 </div>
 <div class="card">
-<h3>What V22 checks</h3>
+<h3>What V23 checks</h3>
 <p class="small">1. URL format → 2. browser can reach Supabase → 3. REST endpoint response → 4. rcs_tournaments table → 5. browser origin/network details → 6. tournament/team data path.</p>
 <p class="small"><b>No schema reset is performed by this page.</b></p>
 </div>
@@ -82,10 +85,10 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <section id="fixtures" class="hidden"><div class="card"><h2>Fixtures &amp; Matches</h2><div id="fixtureList"></div></div></section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V22';
+const LS='ROBIN_CUT_SCORER_V23';
 const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 const OLD_URL='https://oszjutmbgnllxjicljob.supabase.co';
-const LEGACY_KEYS=['ROBIN_CUT_SCORER_V22','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
+const LEGACY_KEYS=['ROBIN_CUT_SCORER_V23','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
 const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
 function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return {}}}
 function cfg(){
@@ -113,7 +116,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V22 connection tests…','info');
+ setStatus('connStatus','Running V23 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
@@ -309,10 +312,23 @@ function show(id,btn){
 function showById(id){show(id,[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id.slice(0,-1))))}
 window.addEventListener('load',()=>{
  loadSaved();
+ // Keep the interface interactive even if a network diagnostic hangs.
+ // Diagnostics and data preloading run in the background and never block navigation.
  const c=cfg();
  if(c.url&&c.key){
-   setTimeout(()=>runDiagnostics(),300);
-   setTimeout(()=>{rest('tournaments').then(d=>fillTournamentSelect(d)).catch(()=>{});rest('teams').then(d=>fillTeamSelect(d)).catch(()=>{})},900);
+   setTimeout(()=>{ try{ runDiagnostics(); }catch(e){} },800);
+   setTimeout(async ()=>{
+     try{ const d=await Promise.race([
+       rest('tournaments'),
+       new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
+     ]); fillTournamentSelect(d);
+     }catch(e){}
+     try{ const d=await Promise.race([
+       rest('teams'),
+       new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
+     ]); fillTeamSelect(d);
+     }catch(e){}
+   },1200);
  }
 })
 </script>
