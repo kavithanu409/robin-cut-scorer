@@ -100,6 +100,12 @@ function cfg(){
  }
  return {url:VERIFIED_URL,key:''};
 }
+async function timedFetch(url, options={}, timeoutMs=12000){
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),timeoutMs);
+ try{return await fetch(url,{...options,signal:controller.signal});}
+ finally{clearTimeout(timer)}
+}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function setStatus(id,msg,type){const e=document.getElementById(id);e.className='status '+type;e.innerHTML=msg}
 function normalize(u){return (u||'').trim().replace(/\/+$/,'')}
@@ -116,7 +122,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V24 connection tests…','info');
+ setStatus('connStatus','Running V26 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
