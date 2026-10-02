@@ -98,7 +98,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V36';
+const LS='ROBIN_CUT_SCORER_V37';
 const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 const OLD_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 const LEGACY_KEYS=['ROBIN_CUT_SCORER_V36','ROBIN_CUT_SCORER_V35','ROBIN_CUT_SCORER_V34','ROBIN_CUT_SCORER_V33','ROBIN_CUT_SCORER_V32','ROBIN_CUT_SCORER_V31','ROBIN_CUT_SCORER_V30','ROBIN_CUT_SCORER_V29','ROBIN_CUT_SCORER_V28','ROBIN_CUT_SCORER_V27','ROBIN_CUT_SCORER_V24','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
@@ -205,7 +205,7 @@ async function rest(table){
 
 async function refreshAll(){
  for(const [name,table] of Object.entries(tables)){try{const data=await rest(table);render(name,data)}catch(e){render(name,[],e.message)}}
- try{const teams=await rest('teams');cacheTeams(teams);fillTeamSelect(teams)}catch(e){}
+ try{const teams=await rest('teams'); if(Array.isArray(teams)&&teams.length){cacheTeams(teams);fillTeamSelect(teams)}}catch(e){}
  setStatus('dashStatus','✓ Supabase connection is working.','ok')
 }
 function render(name,data,err){
@@ -330,20 +330,40 @@ async function createFixture(){
 async function loadPlayerTeams(){
  const s=document.getElementById('playerTeam');
  if(!s)return;
- // Always show cached/previously loaded teams first. Never replace them with an empty list on a transient request failure.
- const known=getCachedTeams();
- if(known.length){fillTeamSelect(known);setStatus('playerStatus','Select an existing team below.','info');}
- else fillTeamSelect([]);
+ // First use every team already known by the app. Never show "Create a team first"
+ // while a previously created team is available.
+ let known=getCachedTeams();
+ if(known.length){
+   fillTeamSelect(known);
+   setStatus('playerStatus','Select an existing team below.','info');
+ }
  const c=cfg();
- if(!c.key){if(!known.length)setStatus('playerStatus','No saved teams yet. Create a team first.','info');return}
+ if(!c.key){
+   if(!known.length) setStatus('playerStatus','Open Teams once to load your teams, then return here.','info');
+   return;
+ }
  try{
-   const data=await Promise.race([rest('teams'),new Promise((_,reject)=>setTimeout(()=>reject(new Error('team load timeout')),8000))]);
-   if(Array.isArray(data) && data.length){cacheTeams(data);fillTeamSelect(data);fillFixtureSelects();setStatus('playerStatus','Existing teams loaded. Select a team to add players.','ok');}
-   else if(!known.length){fillTeamSelect([]);setStatus('playerStatus','No teams found in Supabase. Create a team first.','info');}
+   const data=await rest('teams');
+   if(Array.isArray(data) && data.length){
+     known=data;
+     cacheTeams(data);
+     fillTeamSelect(data);
+     fillFixtureSelects();
+     setStatus('playerStatus','✓ Existing teams loaded. Select a team to add players.','ok');
+   }else if(!known.length){
+     // Do not immediately erase the selector; give the user a useful recovery action.
+     fillTeamSelect([]);
+     setStatus('playerStatus','No teams are available yet. Create a team in Teams first.','info');
+   }
  }catch(e){
    const cached=getCachedTeams();
-   if(cached.length){fillTeamSelect(cached);setStatus('playerStatus','Existing teams loaded from the app. Select a team.','info');}
-   else{fillTeamSelect([]);setStatus('playerStatus','Could not load teams yet. Please open Teams once and return here.','err');}
+   if(cached.length){
+     fillTeamSelect(cached);
+     setStatus('playerStatus','✓ Existing teams loaded from saved app data. Select a team.','ok');
+   }else{
+     fillTeamSelect([]);
+     setStatus('playerStatus','Could not load teams. Open Teams, make sure the team is saved, then return here.','err');
+   }
  }
 }
 function fillTeamSelect(data){
@@ -463,6 +483,7 @@ async function show(id,btn){
    }
    if(id==='players'){
      const data=await loadCoreLists();
+     await loadPlayerTeams();
      if(data.teams.length) setStatus('playerStatus','✓ Existing teams loaded. Select a team above.','ok');
      else setStatus('playerStatus','No teams found. Create a team first.','info');
      // Keep the player list current without wiping the team selector.
@@ -488,6 +509,7 @@ window.addEventListener('load',()=>{
  // V36: do not start network diagnostics automatically.
  // This keeps all navigation and touch controls immediately responsive on iPhone Safari.
  setStatus('dashStatus', cfg().key ? 'Saved connection loaded. Choose a section above.' : 'Open Connection to configure Supabase.','info');
+ setTimeout(()=>{if(!document.getElementById('players').classList.contains('hidden')) loadPlayerTeams()},500);
 });
 </script>
 </body>
