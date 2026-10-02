@@ -3,571 +3,67 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V38</title>
+<title>ROBIN CUT SCORER V39</title>
 <style>
-nav button, button, select, input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
-nav button { pointer-events: auto; }
-
-*{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
-header{background:#111827;color:white;padding:24px 18px 20px}header h1{margin:0;font-size:30px}header p{margin:7px 0 0;color:#cbd5e1}
-nav{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background:#fff;padding:14px;border-bottom:1px solid #dbe3ee}nav button{flex:0 0 auto;min-height:48px;white-space:nowrap;border:1px solid #dbe3ee;background:#fff;color:#2879ed;border-radius:14px;padding:12px 18px;font-weight:800;font-size:16px}nav button.active{background:#3d8d55;color:#fff;border-color:#3d8d55}
-main{max-width:950px;margin:auto;padding:20px 16px 60px}.card{background:#fff;border:1px solid #dbe3ee;border-radius:24px;padding:22px;margin-bottom:18px;box-shadow:0 4px 18px #1720330d}
-.hero{background:linear-gradient(135deg,#111827,#296b46);color:#fff}.hero h2{font-size:32px;margin:0 0 10px}.hero p{color:#dbe8df;font-size:18px;line-height:1.45}
-h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,select{width:100%;padding:15px;border:2px solid #d7e0eb;border-radius:14px;font-size:16px;background:#fff}button.primary{border:0;border-radius:14px;background:#3d8d55;color:white;padding:14px 20px;font-size:16px;font-weight:800;margin-top:16px}button.secondary{border:0;border-radius:14px;background:#edf3ff;color:#2879ed;padding:14px 20px;font-size:16px;font-weight:800;margin-top:16px}
-.status{margin-top:16px;padding:14px 16px;border-radius:14px;line-height:1.5}.ok{background:#eaf7ee;color:#176534}.err{background:#fff0f0;color:#a52626}.info{background:#eef5ff;color:#245a9c}.warn{background:#fff8e7;color:#825b00}
-.row{display:flex;gap:10px;flex-wrap:wrap}.hidden{display:none}.small{font-size:14px;color:#64748b;line-height:1.5}.diag{border:1px solid #e1e7ef;border-radius:16px;margin-top:12px;padding:14px}.diag b{display:block;margin-bottom:5px}.mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-word;font-size:13px}
-
-.searchgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef5ff;color:#245a9c;font-size:12px;font-weight:800;margin:3px 4px 3px 0}.listcard{border:1px solid #dbe3ee;border-radius:18px;padding:16px;margin-top:12px;background:#fff}.listcard h3{margin:0 0 6px}.linkbtn{border:0;background:#edf3ff;color:#2879ed;border-radius:12px;padding:10px 14px;font-weight:800;margin-top:10px}.tablewrap{overflow:auto}.ptable{width:100%;border-collapse:collapse;min-width:620px}.ptable th,.ptable td{padding:10px;border-bottom:1px solid #e5eaf1;text-align:left}.ptable th{font-size:13px;color:#64748b}.selectedteam{border:2px solid #3d8d55}.muted{color:#64748b}.reportbox{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.metric{padding:14px;border:1px solid #dbe3ee;border-radius:16px;background:#f8fafc}.metric b{display:block;font-size:22px}.metric span{font-size:12px;color:#64748b}
-@media(max-width:650px){.searchgrid,.reportbox{grid-template-columns:1fr}}
+*{box-sizing:border-box}html,body{margin:0;background:#fff;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}body{min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}header{background:#111827;color:#fff;padding:18px 20px 16px;position:sticky;top:0;z-index:20}header h1{margin:0;font-size:28px;letter-spacing:.2px}header p{margin:4px 0 0;color:#cbd5e1;font-size:15px}nav{display:flex;gap:8px;overflow:auto;padding:12px 14px;background:#fff;border-bottom:1px solid #eee;position:sticky;top:80px;z-index:19}nav button{flex:0 0 auto;border:1px solid #d7d7d7;background:#fff;color:#666;border-radius:18px;padding:10px 16px;font-weight:700;font-size:14px}nav button.active{background:#159b8d;color:#fff;border-color:#159b8d}main{max-width:900px;margin:0 auto;padding:14px 14px 60px}.card{background:#fff;border-radius:18px;margin:12px 0;padding:18px;box-shadow:0 1px 0 #eee;border:1px solid #eee}.searchbox{display:flex;align-items:center;background:#e9e9eb;border-radius:28px;padding:0 16px;margin:10px 0 12px}.searchbox input{border:0;background:transparent;outline:0;width:100%;padding:14px 8px;font-size:17px}.searchicon{font-size:24px;color:#777}.chips{display:flex;gap:8px;overflow:auto;padding:2px 0 10px}.chip{border:1.5px solid #777;background:#fff;border-radius:15px;padding:8px 15px;font-weight:700;color:#666;white-space:nowrap}.chip.active{background:#159b8d;color:#fff;border-color:#159b8d}.result{display:flex;gap:14px;align-items:center;background:#f7f7f7;border-radius:22px;padding:8px;margin:10px 0;box-shadow:0 1px 5px #00000012}.result .thumb{width:86px;height:86px;border-radius:18px;background:linear-gradient(145deg,#0e5a43,#e0a72f);display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;flex:0 0 86px;text-align:center}.result h3{margin:0 0 5px;font-size:18px}.result p{margin:3px 0;color:#777;font-size:14px}.result button{border:0;background:transparent;text-align:left;padding:0}.tour-hero{border-radius:0 0 18px 18px;overflow:hidden;margin:-14px -14px 0;background:#f4f4f4}.tour-cover{height:230px;background:linear-gradient(135deg,#0c3f35,#159b8d 45%,#d89a26);display:grid;place-items:center;color:#fff;font-size:30px;font-weight:900;text-align:center;padding:30px}.tour-head{padding:16px 10px}.tour-head h2{margin:0;font-size:24px;line-height:1.2}.tour-meta{color:#777;margin-top:7px;line-height:1.45}.tour-actions{display:flex;gap:10px;float:right;margin-top:-50px}.circlebtn{width:42px;height:42px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:20px}.tour-tabs{display:flex;gap:28px;overflow:auto;border-top:1px solid #eee;border-bottom:1px solid #eee;padding:13px 4px}.tour-tabs button{border:0;background:none;color:#777;font-weight:700;font-size:13px;white-space:nowrap;padding:4px 0}.tour-tabs button.active{color:#159b8d;border-bottom:2px solid #159b8d}.winner-row{display:flex;justify-content:center;gap:55px;align-items:flex-end;padding:22px 5px;border-bottom:1px solid #eee}.team-badge{width:76px;height:76px;border-radius:50%;border:5px solid #fff;box-shadow:0 1px 7px #0002;background:linear-gradient(135deg,#263d8d,#d94d67);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:900;text-align:center}.winner-col{text-align:center}.winner-col small{display:block;color:#777;font-weight:800;margin-bottom:6px}.winner-col b{display:block;margin-top:9px;font-size:14px;max-width:120px}.section-title{font-size:18px;font-weight:800;color:#777;margin:18px 0 8px}.topstats{display:grid;grid-template-columns:1fr 1fr;gap:18px;text-align:center;padding:10px 0 18px;border-bottom:1px solid #eee}.bigstat{font-size:40px;font-weight:900}.bigstat-label{color:#777;font-size:14px}.listcard{border:1px solid #e6e6e6;border-radius:16px;padding:14px;margin:9px 0;background:#fff}.listcard h3{margin:0 0 5px}.muted{color:#777;font-size:13px}.tablewrap{overflow:auto}.ptable{width:100%;border-collapse:collapse;min-width:620px}.ptable th,.ptable td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left}.ptable th{color:#777;font-size:12px}.status{padding:12px 14px;border-radius:12px;margin:10px 0}.ok{background:#eaf8ef;color:#176534}.err{background:#fff0f0;color:#a52626}.info{background:#eef7f6;color:#146b63}.warn{background:#fff7df;color:#805d00}label{display:block;font-weight:800;margin:14px 0 7px}input,select{width:100%;padding:13px;border:1px solid #d9d9d9;border-radius:12px;background:#fff}.primary{border:0;border-radius:12px;background:#159b8d;color:#fff;padding:12px 16px;font-weight:800;margin-top:12px}.secondary{border:0;border-radius:12px;background:#eef7f6;color:#147d72;padding:12px 16px;font-weight:800;margin-top:12px}.row{display:flex;gap:9px;flex-wrap:wrap}.hidden{display:none}.small{font-size:13px;color:#777;line-height:1.45}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef7f6;color:#147d72;font-size:12px;font-weight:800;margin:3px}.diag{border:1px solid #e7e7e7;border-radius:13px;margin-top:9px;padding:12px}.diag b{display:block;margin-bottom:4px}.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-word}.squad-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.player-card{border:1px solid #eee;border-radius:14px;padding:11px}.player-avatar{width:42px;height:42px;border-radius:50%;background:#eee;display:grid;place-items:center;margin-bottom:7px}.match-card{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #eee;padding:14px 0}.match-card:last-child{border-bottom:0}.scorepill{font-weight:800;color:#159b8d}.backbtn{border:0;background:none;font-size:28px;padding:4px 0;color:#111}
+@media(max-width:650px){header{padding-top:14px}nav{top:72px}.tour-cover{height:210px}.squad-grid{grid-template-columns:1fr}.winner-row{gap:30px}.tour-tabs{gap:25px}}
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V38</p></header>
-<nav>
-<button type="button" class="active" onclick="show('dashboard',this)">Dashboard</button>
-<button type="button" onclick="show('connection',this)">Connection</button>
-<button type="button" onclick="show('tournaments',this)">Tournaments</button>
-<button type="button" onclick="show('centre',this)">Tournament Centre</button>
-<button type="button" onclick="show('teams',this)">Teams</button>
-<button type="button" onclick="show('players',this)">Players</button>
-<button type="button" onclick="show('fixtures',this)">Fixtures</button>
-</nav>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V39</p></header>
+<nav><button type="button" class="active" onclick="show('explore',this)">Explore</button><button type="button" onclick="show('tournaments',this)">Tournaments</button><button type="button" onclick="show('teams',this)">Teams</button><button type="button" onclick="show('players',this)">Players</button><button type="button" onclick="show('fixtures',this)">Fixtures</button><button type="button" onclick="show('connection',this)">Connection</button></nav>
 <main>
-<section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V38 adds Tournament Centre: search tournaments, open a tournament, view teams, squads, points table, fixtures and player reports.</p><div class="row"><button type="button" class="primary" onclick="showById('connection')">Connection Test</button><button type="button" class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
-<div id="dashStatus" class="status info">Checking saved connection…</div>
+<section id="explore">
+<div class="searchbox"><input id="globalSearch" placeholder="Search tournaments, teams, matches or players" oninput="runGlobalSearch()"><span class="searchicon">⌕</span></div>
+<div class="chips"><button class="chip active" data-filter="Club" onclick="setSearchFilter(this)">Club</button><button class="chip" data-filter="Tournament" onclick="setSearchFilter(this)">Tournament</button><button class="chip" data-filter="Match" onclick="setSearchFilter(this)">Match</button><button class="chip" data-filter="Team" onclick="setSearchFilter(this)">Team</button><button class="chip" data-filter="Player" onclick="setSearchFilter(this)">Player</button></div>
+<div id="globalResults"></div>
+<div class="card"><h3>ROBIN CUT SCORER</h3><p class="small">Search and open a tournament to view teams, squads, matches, points and statistics.</p><button class="primary" type="button" onclick="show('tournaments')">Browse Tournaments</button></div>
 </section>
-
-<section id="connection" class="hidden">
-<div class="card">
-<h2>Supabase Connection</h2>
-<p class="small">Use only the public <b>sb_publishable_...</b> key. Never use a secret/service-role key.</p>
-<label>Project URL</label><input id="url" placeholder="https://your-project.supabase.co">
-<label>Publishable key</label><input id="key" type="password" placeholder="sb_publishable_...">
-<div class="row"><button type="button" class="primary" onclick="runDiagnostics()">Run Full Connection Test</button><button type="button" class="secondary" onclick="loadSaved()">Load Saved</button></div>
-<div id="connStatus" class="status info">Not tested yet.</div>
-<div id="diagnostics"></div>
-</div>
-<div class="card">
-<h3>What the connection checker checks</h3>
-<p class="small">1. URL format → 2. browser can reach Supabase → 3. REST endpoint response → 4. rcs_tournaments table → 5. browser origin/network details → 6. tournament/team data path.</p>
-<p class="small"><b>No schema reset is performed by this page.</b></p>
-</div>
-</section>
-
-<section id="tournaments" class="hidden"><div class="card"><h2>Tournaments</h2><p class="small">Create, search and open any tournament. Opening a tournament shows its teams, squads, points table, fixtures and player reports.</p><label>Create tournament</label><input id="tName" placeholder="e.g. BAPL Season Two 2027"><button type="button" class="primary" onclick="createTournament()">Create Tournament</button><label>Search tournaments</label><input id="tSearch" placeholder="Search tournament name" oninput="filterTournamentCards()"><div id="tStatus"></div><div id="tList"></div></div></section>
-<section id="centre" class="hidden"><div class="card"><h2>Tournament Centre</h2><p class="small">Search and open a tournament to manage teams, squads, fixtures, points and reports.</p><label>Select tournament</label><select id="centreTournament" onchange="openTournamentById(this.value)"></select><div id="centreStatus"></div></div><div id="tournamentDetail"></div></section>
-<section id="teams" class="hidden">
-<div class="card">
-<h2>Teams</h2>
-<p class="small">Add teams to a tournament. Teams are saved directly in Supabase.</p>
-<label>Tournament</label><select id="teamTournament"></select>
-<label>Team name</label><input id="teamName" placeholder="e.g. BATTI NANBARKAL">
-<button type="button" class="primary" onclick="createTeam()">Create Team</button>
-<div id="teamStatus"></div>
-<div id="teamList"></div>
-</div>
-</section>
-<section id="players" class="hidden">
-<div class="card">
-<h2>Players</h2>
-<p class="small">Add players to a team. Players are saved directly in Supabase.</p>
-<label>Team</label><select id="playerTeam"></select>
-<label>Player name</label><input id="playerName" placeholder="e.g. M. Suresh">
-<label>Player role</label>
-<select id="playerRole">
-<option value="Batter">Batter</option>
-<option value="Bowler">Bowler</option>
-<option value="All-rounder">All-rounder</option>
-<option value="Wicket-keeper">Wicket-keeper</option>
-</select>
-<label>Jersey number (optional)</label><input id="playerJersey" inputmode="numeric" placeholder="e.g. 7">
-<button type="button" class="primary" onclick="createPlayer()">Create Player</button>
-<div id="playerStatus"></div>
-<div id="playerList"></div>
-</div>
-</section>
-<section id="fixtures" class="hidden">
-<div class="card">
-<h2>Fixtures &amp; Matches</h2>
-<p class="small">Create tournament fixtures by selecting the tournament, two different teams, venue and match time. Fixtures are saved directly in Supabase.</p>
-<label>Tournament</label><select id="fixtureTournament"></select>
-<label>Team A</label><select id="fixtureTeamA"></select>
-<label>Team B</label><select id="fixtureTeamB"></select>
-<label>Venue</label><input id="fixtureVenue" placeholder="e.g. Kaluthavalai Ground">
-<label>Match date &amp; time</label><input id="fixtureTime" type="datetime-local">
-<button type="button" class="primary" onclick="createFixture()">Create Fixture</button>
-<div id="fixtureStatus"></div>
-</div>
-<div class="card"><h3>Saved Fixtures</h3><div id="fixtureList"></div></div>
-</section>
+<section id="tournaments" class="hidden"><div class="card"><h2>Tournaments</h2><label>Create tournament</label><input id="tName" placeholder="e.g. BAPL Season Two 2027"><button type="button" class="primary" onclick="createTournament()">Create Tournament</button><label>Search tournaments</label><input id="tSearch" placeholder="Search tournament name" oninput="filterTournamentCards()"><div id="tStatus"></div><div id="tList"></div></div></section>
+<section id="centre" class="hidden"><div id="tournamentDetail"></div></section>
+<section id="teams" class="hidden"><div class="card"><h2>Teams</h2><p class="small">Add teams to a tournament. Select an existing tournament or create one in Tournaments.</p><label>Tournament</label><select id="teamTournament"></select><label>Team name</label><input id="teamName" placeholder="e.g. BATTI NANBARKAL"><button type="button" class="primary" onclick="createTeam()">Create Team</button><div id="teamStatus"></div><div id="teamList"></div></div></section>
+<section id="players" class="hidden"><div class="card"><h2>Players</h2><p class="small">Select an existing team and add players to its squad.</p><label>Team</label><select id="playerTeam"></select><label>Player name</label><input id="playerName" placeholder="e.g. M. Suresh"><label>Player role</label><select id="playerRole"><option>Batter</option><option>Bowler</option><option>All-rounder</option><option>Wicket-keeper</option></select><label>Jersey number (optional)</label><input id="playerJersey" inputmode="numeric" placeholder="e.g. 7"><button type="button" class="primary" onclick="createPlayer()">Create Player</button><div id="playerStatus"></div><div id="playerList"></div></div></section>
+<section id="fixtures" class="hidden"><div class="card"><h2>Fixtures & Matches</h2><label>Tournament</label><select id="fixtureTournament"></select><label>Team A</label><select id="fixtureTeamA"></select><label>Team B</label><select id="fixtureTeamB"></select><label>Venue</label><input id="fixtureVenue" placeholder="e.g. Kaluthavalai Ground"><label>Match date & time</label><input id="fixtureTime" type="datetime-local"><button type="button" class="primary" onclick="createFixture()">Create Fixture</button><div id="fixtureStatus"></div></div><div class="card"><h3>Saved Fixtures</h3><div id="fixtureList"></div></div></section>
+<section id="connection" class="hidden"><div class="card"><h2>Supabase Connection</h2><label>Project URL</label><input id="url"><label>Publishable key</label><input id="key" type="password"><button class="primary" onclick="runDiagnostics()">Run Full Connection Test</button><button class="secondary" onclick="loadSaved()">Load Saved</button><div id="connStatus" class="status info">Not tested yet.</div><div id="diagnostics"></div></div></section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V38';
-const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
-const OLD_URL='https://oszjutmbgnllxjtjclob.supabase.co';
-const LEGACY_KEYS=['ROBIN_CUT_SCORER_V37','ROBIN_CUT_SCORER_V36','ROBIN_CUT_SCORER_V35','ROBIN_CUT_SCORER_V34','ROBIN_CUT_SCORER_V33','ROBIN_CUT_SCORER_V32','ROBIN_CUT_SCORER_V31','ROBIN_CUT_SCORER_V30','ROBIN_CUT_SCORER_V29','ROBIN_CUT_SCORER_V28','ROBIN_CUT_SCORER_V27','ROBIN_CUT_SCORER_V24','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
-const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
-function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return {}}}
-function cfg(){
- const cur=readStored(LS);
- if(cur.key)return {...cur,url:cur.url===OLD_URL?VERIFIED_URL:(cur.url||VERIFIED_URL)};
- for(const k of LEGACY_KEYS){
-  const v=readStored(k);
-  if(v.key){const migrated={...v,url:v.url===OLD_URL?VERIFIED_URL:(v.url||VERIFIED_URL)};try{localStorage.setItem(LS,JSON.stringify(migrated))}catch(e){};return migrated;}
- }
- return {url:VERIFIED_URL,key:''};
-}
-async function timedFetch(url, options={}, timeoutMs=12000){
- const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),timeoutMs);
- try{return await fetch(url,{...options,signal:controller.signal});}
- finally{clearTimeout(timer)}
-}
+const LS='ROBIN_CUT_SCORER_V39',VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
+let filter='Club', currentTournament=null, cache={tournaments:[],teams:[],players:[],fixtures:[],matches:[],deliveries:[]};
+const legacy=['ROBIN_CUT_SCORER_V38','ROBIN_CUT_SCORER_V37','ROBIN_CUT_SCORER_V36','ROBIN_CUT_SCORER_V35','ROBIN_CUT_SCORER_V34'];
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function setStatus(id,msg,type){const e=document.getElementById(id);e.className='status '+type;e.innerHTML=msg}
-function normalize(u){return (u||'').trim().replace(/\/+$/,'')}
-function addDiag(title,value,type='info'){document.getElementById('diagnostics').insertAdjacentHTML('beforeend','<div class="diag"><b>'+esc(title)+'</b><div class="mono">'+esc(value)+'</div></div>')}
-function loadSaved(){
- const c=cfg();
- document.getElementById('url').value=c.url||VERIFIED_URL;
- document.getElementById('key').value=c.key||'';
- setStatus('connStatus',c.key?'Saved connection loaded.':'Verified Supabase URL loaded. Enter your publishable key.','info');
-}
-async function runDiagnostics(){
- const u=normalize(document.getElementById('url').value),k=document.getElementById('key').value.trim();
- document.getElementById('diagnostics').innerHTML='';
- if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
- if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
- localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V36 connection tests…','info');
- addDiag('Browser origin',location.origin);
- addDiag('Supabase URL',u);
- addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
- let success=false, last='';
- const tableUrl=u+'/rest/v1/rcs_tournaments?select=id&limit=1';
- // Test 1: simple GET with only the publishable key header. This avoids an unnecessary Authorization header.
- try{
-   const r=await timedFetch(tableUrl,{headers:{apikey:k,Accept:'application/json'}});
-   const t=await r.text();
-   addDiag('Test 1 — REST table GET',r.status+' '+r.statusText,r.ok?'ok':'warn');
-   addDiag('Test 1 response',t.slice(0,900)||'(empty)',r.ok?'ok':'warn');
-   if(r.ok){success=true;last='header-only'}
- }catch(e){last=e.name+': '+e.message;addDiag('Test 1 — network error',last,'err')}
- // Test 2: query-string apikey fallback. It is useful when a browser/network blocks custom request headers.
- if(!success){
-   try{
-     const r=await timedFetch(tableUrl+'&apikey='+encodeURIComponent(k),{headers:{Accept:'application/json'}});
-     const t=await r.text();
-     addDiag('Test 2 — query-key GET',r.status+' '+r.statusText,r.ok?'ok':'warn');
-     addDiag('Test 2 response',t.slice(0,900)||'(empty)',r.ok?'ok':'warn');
-     if(r.ok)success=true;
-   }catch(e){addDiag('Test 2 — network error',e.name+': '+e.message,'err')}
- }
- // Test 3: XHR fallback, which gives a separate browser networking path and clearer status when available.
- if(!success){
-   try{
-     const result=await new Promise((resolve,reject)=>{
-       const x=new XMLHttpRequest();
-       x.open('GET',tableUrl,true); x.timeout=10000;
-       x.setRequestHeader('apikey',k); x.setRequestHeader('Accept','application/json');
-       x.onload=()=>resolve({status:x.status,text:x.responseText||''});
-       x.onerror=()=>reject(new Error('XMLHttpRequest network error'));
-       x.ontimeout=()=>reject(new Error('XMLHttpRequest timeout'));
-       x.send();
-     });
-     addDiag('Test 3 — XHR',result.status,(result.status>=200&&result.status<300)?'ok':'warn');
-     addDiag('Test 3 response',result.text.slice(0,900)||'(empty)',(result.status>=200&&result.status<300)?'ok':'warn');
-     if(result.status>=200&&result.status<300)success=true;
-   }catch(e){addDiag('Test 3 — XHR network error',e.message,'err')}
- }
- if(!success){
-   addDiag('Conclusion','All browser request paths failed before receiving a normal HTTP success response. The SQL tables/policies are not the next thing to change. This points to a browser/network/CORS/DNS/access-path issue.','warn');
-   const direct=tableUrl+'&apikey='+encodeURIComponent(k);
-   document.getElementById('diagnostics').insertAdjacentHTML('beforeend','<div class="diag"><b>Direct browser test</b><div class="small">Open this same REST request directly in a new tab:</div><a target="_blank" rel="noopener" href="'+esc(direct)+'">Open Supabase REST test</a></div>');
-   setStatus('connStatus','❌ Browser could not complete a Supabase request. Use the direct test link above; if it also fails, the issue is outside the SQL schema.','err');
-   return;
- }
- setStatus('connStatus','✅ Supabase responded successfully from this browser.','ok');
- try{await refreshAll()}catch(e){addDiag('Data refresh error',e.message,'warn')}
-}
-
-async function rest(table){
- const c=cfg();
- const base=c.url+'/rest/v1/'+table+'?select=*&limit=100';
- try{
-   const r=await timedFetch(base,{headers:{apikey:c.key,Accept:'application/json'}});
-   const t=await r.text();
-   if(r.ok)return t?JSON.parse(t):[];
-   throw new Error('HTTP '+r.status+': '+t.slice(0,400));
- }catch(first){
-   const r=await timedFetch(base+'&apikey='+encodeURIComponent(c.key),{headers:{Accept:'application/json'}});
-   const t=await r.text();
-   if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,400)+' | first attempt: '+first.message);
-   return t?JSON.parse(t):[];
- }
-}
-
-async function refreshAll(){
- for(const [name,table] of Object.entries(tables)){try{const data=await rest(table);render(name,data)}catch(e){render(name,[],e.message)}}
- try{const teams=await rest('teams'); if(Array.isArray(teams)&&teams.length){cacheTeams(teams);fillTeamSelect(teams)}}catch(e){}
- setStatus('dashStatus','✓ Supabase connection is working.','ok')
-}
-function render(name,data,err){
- const id=name==='tournaments'?'tList':name==='teams'?'teamList':name==='players'?'playerList':'fixtureList';
- const el=document.getElementById(id); if(!el)return;
- if(err){el.innerHTML='<div class="status err">'+esc(err)+'</div>';return}
- data=Array.isArray(data)?data:[];
- if(name==='tournaments'){
-   const usable=data.length?data:allKnownTournaments();
-   if(data.length)cacheTournaments(data);
-   renderTournamentCards(usable); fillCentreTournamentSelect(); fillTournamentSelect(usable); fillFixtureSelects(); return;
- }
- if(name==='teams'){
-   const usable=data.length?data:getCachedTeams();
-   if(data.length)cacheTeams(data);
-   fillTeamSelect(usable); fillFixtureSelects();
-   el.innerHTML=usable.length?'<div class="small">'+usable.length+' team(s) available.</div>'+usable.map((t,i)=>'<div class="diag"><b>'+(i+1)+'. '+esc(t.name)+'</b><div class="small">Team ID: '+esc(t.id)+'</div></div>').join(''):'<p class="small">No teams yet. Create the first team above.</p>';
-   return;
- }
- if(name==='players'){
-   if(!data.length){el.innerHTML='<p class="small">No players yet. Create the first player above.</p>';return}
-   const teamNames=[...document.querySelectorAll('#playerTeam option')].reduce((m,o)=>(m[o.value]=o.textContent,m),{});
-   el.innerHTML='<div class="small">'+data.length+' player(s) loaded from Supabase.</div>'+data.map((p,i)=>'<div class="diag"><b>'+(i+1)+'. '+esc(p.name)+'</b><div class="small">Team: '+esc(teamNames[p.team_id]||p.team_id||'—')+(p.role?' · Role: '+esc(p.role):'')+(p.jersey_no!=null?' · Jersey: '+esc(p.jersey_no):'')+'</div></div>').join('');
-   return;
- }
- if(name==='fixtures'){
-   const teams=getCachedTeams(); const names=Object.fromEntries(teams.map(t=>[t.id,t.name]));
-   if(!data.length){el.innerHTML='<p class="small">No fixtures yet. Create the first fixture above.</p>';return}
-   el.innerHTML='<div class="small">'+data.length+' fixture(s) loaded from Supabase.</div>'+data.map((f,i)=>{const dt=f.match_time?new Date(f.match_time).toLocaleString():'Time not set';return '<div class="diag"><b>'+(i+1)+'. '+esc(names[f.team_a]||f.team_a)+' vs '+esc(names[f.team_b]||f.team_b)+'</b><div class="small">'+esc(f.venue||'Venue not set')+' · '+esc(dt)+' · Status: '+esc(f.status||'scheduled')+'</div></div>'}).join('');
-   return;
- }
- if(!data.length){el.innerHTML='<p class="small">No records yet.</p>';return}
- el.innerHTML='<div class="small">'+data.length+' record(s) loaded from Supabase.</div>';
-}
-
-function cacheTournaments(data){
- try{localStorage.setItem('RCS_TOURNAMENT_CACHE',JSON.stringify(data||[]))}catch(e){}
- window.RCS_TOURNAMENTS=data||[];
-}
-function getCachedTournaments(){
- try{const a=JSON.parse(localStorage.getItem('RCS_TOURNAMENT_CACHE')||'[]'); if(Array.isArray(a)) return a}catch(e){}
- return Array.isArray(window.RCS_TOURNAMENTS)?window.RCS_TOURNAMENTS:[];
-}
-function cacheTeams(data){
- const arr=Array.isArray(data)?data:[];
- try{localStorage.setItem('RCS_TEAM_CACHE',JSON.stringify(arr))}catch(e){}
- window.RCS_TEAMS=arr;
-}
-function getCachedTeams(){
- try{const a=JSON.parse(localStorage.getItem('RCS_TEAM_CACHE')||'[]'); if(Array.isArray(a)) return a}catch(e){}
- return Array.isArray(window.RCS_TEAMS)?window.RCS_TEAMS:[];
-}
-function deriveTournamentOptionsFromTeams(teams){
- const ids=[...new Set((teams||[]).map(t=>t&&t.tournament_id).filter(Boolean))];
- if(!ids.length)return [];
- const cached=getCachedTournaments();
- return ids.map(id=>cached.find(t=>t.id===id)||({id,name:'Existing tournament · '+String(id).slice(0,8),format:'League',overs:10}));
-}
-function allKnownTournaments(){
- const cached=getCachedTournaments();
- const derived=deriveTournamentOptionsFromTeams(getCachedTeams());
- const out=[...cached];
- for(const t of derived) if(!out.some(x=>x.id===t.id)) out.push(t);
- return out;
-}
-function fillFixtureSelects(){
- const ts=allKnownTournaments(), teams=getCachedTeams();
- const ft=document.getElementById('fixtureTournament');
- const a=document.getElementById('fixtureTeamA');
- const b=document.getElementById('fixtureTeamB');
- if(ft){const cur=ft.value; ft.innerHTML=ts.length?ts.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a tournament first</option>'; if(cur && [...ft.options].some(o=>o.value===cur))ft.value=cur;}
- if(a){const cur=a.value; a.innerHTML=teams.length?teams.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a team first</option>'; if(cur && [...a.options].some(o=>o.value===cur))a.value=cur;}
- if(b){const cur=b.value; b.innerHTML=teams.length?teams.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a team first</option>'; if(cur && [...b.options].some(o=>o.value===cur))b.value=cur;}
-}
-async function loadFixtureData(){
- const c=cfg();
- // Immediately populate from whatever is already known; network refresh is secondary.
- fillFixtureSelects();
- if(!c.key){setStatus('fixtureStatus','Existing saved teams/tournaments are shown where available. Open Connection only if you need to change the connection.','info');return}
- try{const ts=await rest('tournaments');cacheTournaments(ts);fillTournamentSelect(allKnownTournaments());fillFixtureSelects()}
- catch(e){const ts=allKnownTournaments(); if(ts.length){fillTournamentSelect(ts);fillFixtureSelects();setStatus('fixtureStatus','Using the tournament already linked to your saved teams.','info')} else setStatus('fixtureStatus','No tournament list returned. Create a tournament first.','err')}
- try{const teams=await rest('teams');cacheTeams(teams);fillTeamSelect(teams);fillTournamentAndFixtureFromTeams(teams);fillFixtureSelects()}
- catch(e){const teams=getCachedTeams(); if(teams.length){fillTeamSelect(teams);fillFixtureSelects();setStatus('fixtureStatus','Using the teams already loaded from Supabase.','info')} else setStatus('fixtureStatus','No teams returned. Create a team first.','err')}
-}
-async function createFixture(){
- const tournament_id=document.getElementById('fixtureTournament').value;
- const team_a=document.getElementById('fixtureTeamA').value;
- const team_b=document.getElementById('fixtureTeamB').value;
- const venue=document.getElementById('fixtureVenue').value.trim();
- const timeRaw=document.getElementById('fixtureTime').value;
- const c=cfg();
- if(!tournament_id){setStatus('fixtureStatus','Select a tournament first.','err');return}
- if(!team_a||!team_b){setStatus('fixtureStatus','Select both teams.','err');return}
- if(team_a===team_b){setStatus('fixtureStatus','Team A and Team B must be different.','err');return}
- if(!c.key){setStatus('fixtureStatus','Run the Supabase connection test first.','err');return}
- const payload={tournament_id,team_a,team_b,venue:venue||null,match_time:timeRaw?new Date(timeRaw).toISOString():null,status:'scheduled'};
- try{
-   let r; try{r=await timedFetch(c.url+'/rest/v1/rcs_fixtures',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)})}
-   catch(first){r=await timedFetch(c.url+'/rest/v1/rcs_fixtures?apikey='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)})}
-   const t=await r.text(); if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));
-   document.getElementById('fixtureVenue').value=''; document.getElementById('fixtureTime').value='';
-   setStatus('fixtureStatus','✓ Fixture created.','ok');
-   await refreshAll();
- }catch(e){setStatus('fixtureStatus','Create failed: '+esc(e.message),'err')}
-}
-async function loadPlayerTeams(){
- const s=document.getElementById('playerTeam');
- if(!s)return;
- // First use every team already known by the app. Never show "Create a team first"
- // while a previously created team is available.
- let known=getCachedTeams();
- if(known.length){
-   fillTeamSelect(known);
-   setStatus('playerStatus','Select an existing team below.','info');
- }
- const c=cfg();
- if(!c.key){
-   if(!known.length) setStatus('playerStatus','Open Teams once to load your teams, then return here.','info');
-   return;
- }
- try{
-   const data=await rest('teams');
-   if(Array.isArray(data) && data.length){
-     known=data;
-     cacheTeams(data);
-     fillTeamSelect(data);
-     fillFixtureSelects();
-     setStatus('playerStatus','✓ Existing teams loaded. Select a team to add players.','ok');
-   }else if(!known.length){
-     // Do not immediately erase the selector; give the user a useful recovery action.
-     fillTeamSelect([]);
-     setStatus('playerStatus','No teams are available yet. Create a team in Teams first.','info');
-   }
- }catch(e){
-   const cached=getCachedTeams();
-   if(cached.length){
-     fillTeamSelect(cached);
-     setStatus('playerStatus','✓ Existing teams loaded from saved app data. Select a team.','ok');
-   }else{
-     fillTeamSelect([]);
-     setStatus('playerStatus','Could not load teams. Open Teams, make sure the team is saved, then return here.','err');
-   }
- }
-}
-function fillTeamSelect(data){
- const s=document.getElementById('playerTeam'); if(!s)return;
- const current=s.value;
- const arr=Array.isArray(data)?data:[];
- s.innerHTML=arr.length?arr.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a team first</option>';
- if(current && [...s.options].some(o=>o.value===current))s.value=current;
-}
-
-
-function tournamentNameById(id){const t=allKnownTournaments().find(x=>x.id===id);return t?.name||'Tournament'}
-function teamNameById(id){const t=getCachedTeams().find(x=>x.id===id);return t?.name||'Team'}
-function tournamentTeams(tid){return getCachedTeams().filter(t=>t.tournament_id===tid)}
-function renderTournamentCards(list){
- const el=document.getElementById('tList'); if(!el)return;
- if(!list.length){el.innerHTML='<div class="status info">No tournaments found.</div>';return}
- el.innerHTML=list.map(t=>`<div class="listcard tournament-card" data-name="${esc((t.name||'').toLowerCase())}"><h3>${esc(t.name||'Unnamed tournament')}</h3><div class="small">Format: ${esc(t.format||'League')} · Overs: ${esc(t.overs||10)}</div><div class="small" style="margin-top:6px">${tournamentTeams(t.id).length} team(s) currently linked</div><button type="button" class="linkbtn" onclick="openTournamentById('${esc(t.id)}')">Open Tournament</button></div>`).join('');
-}
-function filterTournamentCards(){
- const q=(document.getElementById('tSearch')?.value||'').trim().toLowerCase();
- document.querySelectorAll('.tournament-card').forEach(c=>{c.style.display=(!q||c.dataset.name.includes(q))?'block':'none'});
-}
-function fillCentreTournamentSelect(){
- const s=document.getElementById('centreTournament'); if(!s)return; const arr=allKnownTournaments(); const cur=s.value;
- s.innerHTML=arr.length?'<option value="">Select tournament</option>'+arr.map(t=>`<option value="${esc(t.id)}">${esc(t.name)}</option>`).join(''):'<option value="">No tournaments available</option>';
- if(cur && [...s.options].some(o=>o.value===cur))s.value=cur;
-}
-function renderTournamentDetail(tid){
- const wrap=document.getElementById('tournamentDetail'); if(!wrap)return;
- if(!tid){wrap.innerHTML='';return}
- const t=allKnownTournaments().find(x=>x.id===tid); const teams=tournamentTeams(tid);
- wrap.innerHTML=`<div class="card"><h2>${esc(t?.name||'Tournament')}</h2><div class="row"><span class="pill">${esc(t?.format||'League')}</span><span class="pill">${esc(t?.overs||10)} overs</span><span class="pill">${teams.length} teams</span></div></div>
- <div class="card"><h3>Teams & Squads</h3><div id="detailTeams">${teams.length?teams.map(tm=>`<div class="listcard" id="teamcard-${esc(tm.id)}"><h3>${esc(tm.name)}</h3><div class="small">Squad will appear here from Players.</div><div id="squad-${esc(tm.id)}" class="small">Loading squad…</div></div>`).join(''):'<div class="status info">No teams linked to this tournament yet.</div>'}</div></div>
- <div class="card"><h3>Points Table</h3><div class="tablewrap"><table class="ptable"><thead><tr><th>Team</th><th>Played</th><th>Won</th><th>Lost</th><th>Tied/NR</th><th>Points</th><th>NRR</th></tr></thead><tbody id="pointsBody"><tr><td colspan="7">Loading…</td></tr></tbody></table></div><p class="small">Points are calculated from recorded match winners. NRR is shown when enough innings/ball data exists; otherwise it remains —.</p></div>
- <div class="card"><h3>Fixtures</h3><div id="detailFixtures" class="small">Loading…</div></div>
- <div class="card"><h3>Player Reports & Stats</h3><label>Team</label><select id="reportTeam" onchange="renderPlayerReport('${esc(tid)}',this.value)">${teams.length?teams.map(tm=>`<option value="${esc(tm.id)}">${esc(tm.name)}</option>`).join(''):'<option value="">No teams</option>'}</select><div id="playerReport" style="margin-top:14px">${teams.length?'Loading…':'No players yet.'}</div></div>`;
- loadTournamentDetailData(tid,teams);
-}
-async function openTournamentById(tid){
- if(!tid){document.getElementById('tournamentDetail').innerHTML='';return}
- fillCentreTournamentSelect(); const s=document.getElementById('centreTournament'); if(s)s.value=tid;
- document.getElementById('centreStatus') && setStatus('centreStatus','✓ Tournament opened. Teams, squads, points and reports are shown below.','ok');
- renderTournamentDetail(tid);
-}
-async function loadTournamentDetailData(tid,teams){
- let players=[],fixtures=[],matches=[],deliveries=[]; const c=cfg();
- if(c.key){
-  try{players=await rest('players')}catch(e){}
-  try{fixtures=await rest('fixtures')}catch(e){}
-  try{matches=await rest('matches')}catch(e){}
-  try{deliveries=await rest('deliveries')}catch(e){}
- }
- const ts=new Map(teams.map(t=>[t.id,t]));
- for(const tm of teams){const squad=players.filter(p=>p.team_id===tm.id); const el=document.getElementById('squad-'+tm.id); if(el)el.innerHTML=squad.length?squad.map(p=>`<span class="pill">${esc(p.name)}${p.role?' · '+esc(p.role):''}</span>`).join(''):'No players registered yet.';}
- const fs=fixtures.filter(f=>f.tournament_id===tid); const fx=document.getElementById('detailFixtures');
- if(fx)fx.innerHTML=fs.length?fs.map(f=>`<div class="listcard"><b>${esc(teamNameById(f.team_a))}</b> vs <b>${esc(teamNameById(f.team_b))}</b><div class="small">${esc(f.venue||'Venue not set')} · ${f.match_time?new Date(f.match_time).toLocaleString(): 'Time not set'} · ${esc(f.status||'scheduled')}</div></div>`).join(''):'No fixtures yet.';
- const matchByFixture=new Map(matches.map(m=>[m.fixture_id,m]));
- const stats={}; teams.forEach(t=>stats[t.id]={team:t,played:0,won:0,lost:0,nr:0,points:0});
- fs.forEach(f=>{const a=stats[f.team_a],b=stats[f.team_b];if(!a||!b)return;const m=matchByFixture.get(f.id); if(!m)return; a.played++;b.played++; if(m.winner===f.team_a){a.won++;b.lost++;a.points+=2}else if(m.winner===f.team_b){b.won++;a.lost++;b.points+=2}else{a.nr++;b.nr++;a.points++;b.points++;}});
- const body=document.getElementById('pointsBody'); if(body){const rows=Object.values(stats).sort((x,y)=>y.points-x.points||y.won-x.won||x.team.name.localeCompare(y.team.name));body.innerHTML=rows.length?rows.map(x=>`<tr><td><b>${esc(x.team.name)}</b></td><td>${x.played}</td><td>${x.won}</td><td>${x.lost}</td><td>${x.nr}</td><td><b>${x.points}</b></td><td>—</td></tr>`).join(''):'<tr><td colspan="7">No recorded match results yet.</td></tr>';}
- const reportTeam=document.getElementById('reportTeam'); if(reportTeam?.value)renderPlayerReport(tid,reportTeam.value,players,deliveries);
-}
-async function renderPlayerReport(tid,teamId,playersArg,deliveriesArg){
- const box=document.getElementById('playerReport'); if(!box)return;
- let players=playersArg||[], deliveries=deliveriesArg||[]; const c=cfg();
- if(c.key && (!players.length||!deliveries.length)){try{if(!players.length)players=await rest('players')}catch(e){} try{if(!deliveries.length)deliveries=await rest('deliveries')}catch(e){}}
- const squad=players.filter(p=>p.team_id===teamId);
- if(!squad.length){box.innerHTML='<div class="status info">No players registered for this team.</div>';return}
- const rows=squad.map(p=>{const d=deliveries.filter(x=>x.striker===p.name||x.bowler===p.name);const bat=d.filter(x=>x.striker===p.name);const runs=bat.reduce((a,x)=>a+Number(x.runs||0),0);const balls=bat.filter(x=>!['wide','no-ball','bye','leg-bye'].includes(String(x.event_type||'').toLowerCase())).length;const fours=bat.filter(x=>Number(x.runs||0)===4).length;const sixes=bat.filter(x=>Number(x.runs||0)===6).length;const bowl=d.filter(x=>x.bowler===p.name);const br=bowl.reduce((a,x)=>a+Number(x.runs||0),0);const wk=bowl.filter(x=>String(x.event_type||'').toLowerCase()==='wicket').length;return {p,runs,balls,fours,sixes,br,wk}});
- box.innerHTML=`<div class="tablewrap"><table class="ptable"><thead><tr><th>Player</th><th>Role</th><th>Runs</th><th>Balls</th><th>4s</th><th>6s</th><th>Bowling Runs</th><th>Wkts</th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${esc(x.p.name)}</b></td><td>${esc(x.p.role||'')}</td><td>${x.runs}</td><td>${x.balls}</td><td>${x.fours}</td><td>${x.sixes}</td><td>${x.br}</td><td>${x.wk}</td></tr>`).join('')}</tbody></table></div><p class="small">Player report uses saved ball-by-ball deliveries when available.</p>`;
-}
-async function createPlayer(){
- const name=document.getElementById('playerName').value.trim();
- const team_id=document.getElementById('playerTeam').value;
- const role=document.getElementById('playerRole').value;
- const jerseyRaw=document.getElementById('playerJersey').value.trim();
- const c=cfg();
- if(!team_id){setStatus('playerStatus','Create/select a team first.','err');return}
- if(!name){setStatus('playerStatus','Enter a player name.','err');return}
- if(!c.url||!c.key){setStatus('playerStatus','Run the Supabase connection test first.','err');return}
- try{
-   // Keep the first insert compatible with the core schema: name + team_id.
-   // If the schema has optional role/jersey columns, retry with those fields.
-   const base={name,team_id};
-   let r=await timedFetch(c.url+'/rest/v1/rcs_players',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(base)});
-   let t=await r.text();
-   if(!r.ok && (role || jerseyRaw)){
-     const payload={name,team_id,role,jersey_no:jerseyRaw?Number(jerseyRaw):null};
-     r=await timedFetch(c.url+'/rest/v1/rcs_players',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});
-     t=await r.text();
-   }
-   if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));
-   document.getElementById('playerName').value='';
-   document.getElementById('playerJersey').value='';
-   setStatus('playerStatus','✓ Player created.','ok');
-   refreshAll();
- }catch(e){setStatus('playerStatus','Create failed: '+esc(e.message),'err')}
-}
-
-function fillTournamentSelect(data){
- const s=document.getElementById('teamTournament'); if(!s)return;
- const current=s.value;
- const arr=Array.isArray(data)?data:allKnownTournaments();
- s.innerHTML=arr.length?arr.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name||('Existing tournament '+String(t.id).slice(0,8)))+'</option>').join(''):'<option value="">Create a tournament first</option>';
- if(current && [...s.options].some(o=>o.value===current))s.value=current;
-}
-function fillTournamentAndFixtureFromTeams(teams){
- const arr=Array.isArray(teams)?teams:[];
- if(arr.length) cacheTeams(arr);
- const derived=deriveTournamentOptionsFromTeams(arr);
- if(derived.length){
-   const cached=getCachedTournaments();
-   const merged=[...cached];
-   for(const d of derived) if(!merged.some(x=>x.id===d.id)) merged.push(d);
-   cacheTournaments(merged);
-   fillTournamentSelect(merged);
-   fillFixtureSelects();
- }
-}
-async function createTeam(){
- const name=document.getElementById('teamName').value.trim();
- const tournament_id=document.getElementById('teamTournament').value;
- const c=cfg();
- if(!tournament_id){setStatus('teamStatus','Create/select a tournament first.','err');return}
- if(!name){setStatus('teamStatus','Enter a team name.','err');return}
- if(!c.url||!c.key){setStatus('teamStatus','Run the Supabase connection test first.','err');return}
- try{
-   const payload={name,tournament_id};
-   let r;
-   try{r=await timedFetch(c.url+'/rest/v1/rcs_teams',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)})}
-   catch(first){r=await timedFetch(c.url+'/rest/v1/rcs_teams?apikey='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)})}
-   const t=await r.text(); if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));
-   try{const created=JSON.parse(t); const arr=Array.isArray(created)?created:[created]; const known=getCachedTeams(); cacheTeams([...known,...arr.filter(x=>x&&x.id&&!known.some(k=>k.id===x.id))]); fillTeamSelect(getCachedTeams()); fillFixtureSelects();}catch(e){}
-   document.getElementById('teamName').value='';
-   setStatus('teamStatus','✓ Team created.','ok');
-   refreshAll();
- }catch(e){setStatus('teamStatus','Create failed: '+esc(e.message),'err')}
-}
-async function createTournament(){
- const name=document.getElementById('tName').value.trim(),c=cfg();if(!name){setStatus('tStatus','Enter a tournament name.','err');return}if(!c.url||!c.key){setStatus('tStatus','Run the Supabase connection test first.','err');return}
- try{let r;try{r=await timedFetch(c.url+'/rest/v1/rcs_tournaments',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({name})})}catch(first){r=await timedFetch(c.url+'/rest/v1/rcs_tournaments?apikey='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify({name})})}const t=await r.text();if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));
-   try{const created=JSON.parse(t); const arr=Array.isArray(created)?created:[created]; const known=getCachedTournaments(); cacheTournaments([...known,...arr.filter(x=>x&&x.id&&!known.some(k=>k.id===x.id))]); fillTournamentSelect(allKnownTournaments()); fillFixtureSelects();}catch(e){}
-   setStatus('tStatus','✓ Tournament created.','ok');document.getElementById('tName').value='';refreshAll()}catch(e){setStatus('tStatus','Create failed: '+esc(e.message),'err')}
-}
-async function loadCoreLists(){
-  let tournaments=getCachedTournaments();
-  let teams=getCachedTeams();
-  const c=cfg();
-  if(c.key){
-    try{const ts=await rest('tournaments'); if(Array.isArray(ts) && ts.length){tournaments=ts;cacheTournaments(ts);}}catch(e){}
-    try{const tm=await rest('teams'); if(Array.isArray(tm) && tm.length){teams=tm;cacheTeams(tm);}}catch(e){}
-  }
-  if(teams.length) fillTournamentAndFixtureFromTeams(teams);
-  fillTournamentSelect(tournaments.length?tournaments:allKnownTournaments());
-  fillTeamSelect(teams);
-  fillFixtureSelects();
-  return {tournaments:tournaments.length?tournaments:allKnownTournaments(),teams};
-}
-
-async function show(id,btn){
- document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));
- const sec=document.getElementById(id); if(sec)sec.classList.remove('hidden');
- document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
- if(btn)btn.classList.add('active');
- try{
-   if(id==='tournaments'){
-     const c=cfg();
-     let ts=getCachedTournaments();
-     if(c.key){try{const data=await rest('tournaments'); if(Array.isArray(data)){ts=data;cacheTournaments(data);}}catch(e){}}
-     render('tournaments',ts);
-     renderTournamentCards(ts); fillCentreTournamentSelect();
-     setStatus('tStatus',ts.length?'✓ Existing tournaments loaded. Select one from Teams, Players and Fixtures.':'No tournaments found. Create the first tournament above.','info');
-   }
-   if(id==='teams'){
-     const data=await loadCoreLists();
-     if(data.tournaments.length) setStatus('teamStatus','✓ Existing tournaments loaded. Select a tournament above.','ok');
-     else setStatus('teamStatus','No tournaments found. Create the first tournament above.','info');
-     render('teams',data.teams);
-   }
-   if(id==='players'){
-     const data=await loadCoreLists();
-     await loadPlayerTeams();
-     if(data.teams.length) setStatus('playerStatus','✓ Existing teams loaded. Select a team above.','ok');
-     else setStatus('playerStatus','No teams found. Create a team first.','info');
-     // Keep the player list current without wiping the team selector.
-     if(cfg().key){try{const ps=await rest('players');render('players',ps)}catch(e){}}
-   }
-   if(id==='centre'){
-     const data=await loadCoreLists();
-     fillCentreTournamentSelect();
-     setStatus('centreStatus',data.tournaments.length?'✓ Select a tournament to open its full control centre.':'No tournaments found. Create a tournament first.','info');
-   }
-   if(id==='fixtures'){
-     const data=await loadCoreLists();
-     if(data.tournaments.length && data.teams.length) setStatus('fixtureStatus','✓ Existing tournament and teams loaded. Select them to create a fixture.','ok');
-     else if(data.tournaments.length) setStatus('fixtureStatus','✓ Existing tournaments loaded. Select a tournament and teams.','info');
-     else setStatus('fixtureStatus','No tournaments found. Create a tournament first.','info');
-     if(cfg().key){try{const fs=await rest('fixtures');render('fixtures',fs)}catch(e){}}
-   }
- }catch(e){
-   if(id==='teams') setStatus('teamStatus','Could not refresh from Supabase. Saved existing data is being used.','warn');
-   if(id==='players') setStatus('playerStatus','Could not refresh from Supabase. Saved existing data is being used.','warn');
-   if(id==='fixtures') setStatus('fixtureStatus','Could not refresh from Supabase. Saved existing data is being used.','warn');
- }
-}
-function showById(id){show(id,[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id.slice(0,-1))))}
-window.addEventListener('load',()=>{
- loadSaved();
- try{const ts=getCachedTournaments(), tm=getCachedTeams(); cacheTournaments(ts); cacheTeams(tm); if(tm.length) fillTournamentAndFixtureFromTeams(tm); fillTournamentSelect(allKnownTournaments()); fillTeamSelect(tm); fillFixtureSelects()}catch(e){}
- // V38: do not start network diagnostics automatically.
- // This keeps all navigation and touch controls immediately responsive on iPhone Safari.
- setStatus('dashStatus', cfg().key ? 'Saved connection loaded. Choose a section above.' : 'Open Connection to configure Supabase.','info');
- fillCentreTournamentSelect(); setTimeout(()=>{if(!document.getElementById('players').classList.contains('hidden')) loadPlayerTeams()},500);
-});
+function stored(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return {}}}
+function cfg(){let c=stored(LS);if(c.key)return {...c,url:VERIFIED_URL};for(const k of legacy){c=stored(k);if(c.key){c={...c,url:VERIFIED_URL};try{localStorage.setItem(LS,JSON.stringify(c))}catch{};return c}}return {url:VERIFIED_URL,key:''}}
+function setStatus(id,msg,type='info'){const e=document.getElementById(id);if(e)e.className='status '+type,e.innerHTML=msg}
+async function timedFetch(url,opt={},timeout=12000){const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);try{return await fetch(url,{...opt,signal:c.signal})}finally{clearTimeout(t)}}
+async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase key');const u=c.url+'/rest/v1/'+table+'?select=*&limit=1000';const r=await timedFetch(u,{headers:{apikey:c.key,Accept:'application/json'}});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
+async function post(table,payload){const c=cfg();const r=await timedFetch(c.url+'/rest/v1/'+table,{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
+function saveCache(){try{for(const k of ['tournaments','teams','players','fixtures','matches','deliveries'])localStorage.setItem('RCS39_'+k,JSON.stringify(cache[k]))}catch{}}
+function loadCache(){for(const k of ['tournaments','teams','players','fixtures','matches']){try{const a=JSON.parse(localStorage.getItem('RCS39_'+k)||'[]');cache[k]=Array.isArray(a)?a:[]}catch{cache[k]=[]}}}
+async function loadData(){loadCache();const c=cfg();if(!c.key)return;for(const k of ['tournaments','teams','players','fixtures','matches','deliveries']){try{cache[k]=await rest(k); }catch{}}saveCache();}
+function setSearchFilter(btn){document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));btn.classList.add('active');filter=btn.dataset.filter;runGlobalSearch()}
+function runGlobalSearch(){const q=(document.getElementById('globalSearch')?.value||'').trim().toLowerCase(),out=document.getElementById('globalResults');if(!out)return;let html='';if(filter==='Tournament'||filter==='Club'){cache.tournaments.filter(t=>!q||(t.name||'').toLowerCase().includes(q)).forEach(t=>html+=tCard(t));}if(filter==='Team'){cache.teams.filter(t=>!q||(t.name||'').toLowerCase().includes(q)).forEach(t=>html+=`<div class="result"><div class="thumb">🏏</div><div><h3>${esc(t.name)}</h3><p>${esc(tournamentName(t.tournament_id))}</p></div></div>`)}if(filter==='Player'){cache.players.filter(p=>!q||(p.name||'').toLowerCase().includes(q)).forEach(p=>html+=`<div class="result"><div class="thumb">👤</div><div><h3>${esc(p.name)}</h3><p>${esc(teamName(p.team_id))} · ${esc(p.role||'Player')}</p></div></div>`)}if(filter==='Match'){cache.fixtures.filter(f=>!q||((teamName(f.team_a)+' '+teamName(f.team_b)).toLowerCase().includes(q))).forEach(f=>html+=`<div class="listcard"><h3>${esc(teamName(f.team_a))} vs ${esc(teamName(f.team_b))}</h3><div class="muted">${esc(tournamentName(f.tournament_id))} · ${esc(f.venue||'Venue not set')}</div></div>`)}out.innerHTML=html||'<div class="card"><p class="small">No results found.</p></div>'}
+function tCard(t){return `<div class="result"><div class="thumb">🏏</div><div style="flex:1"><button onclick="openTournament('${esc(t.id)}')"><h3>${esc(t.name)}</h3><p>${esc(t.format||'League')} · ${esc(t.overs||10)} overs</p><p>${cache.teams.filter(x=>x.tournament_id===t.id).length} teams</p></button></div></div>`}
+function tournamentName(id){return cache.tournaments.find(t=>t.id===id)?.name||'Tournament'}function teamName(id){return cache.teams.find(t=>t.id===id)?.name||'Team'}function playersOf(team){return cache.players.filter(p=>p.team_id===team)}
+function show(id,btn){document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));const s=document.getElementById(id);if(s)s.classList.remove('hidden');document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));if(btn)btn.classList.add('active');if(id==='tournaments')renderTournaments();if(id==='teams')renderTeams();if(id==='players')renderPlayers();if(id==='fixtures')renderFixtures();if(id==='explore')runGlobalSearch()}
+function renderTournaments(){const l=document.getElementById('tList');l.innerHTML=cache.tournaments.map(t=>tCard(t)).join('')||'<div class="status info">No tournaments found.</div>';document.getElementById('tStatus').innerHTML=cache.tournaments.length?'<div class="status ok">Existing tournaments loaded. Search and open one.</div>':''}
+function filterTournamentCards(){const q=(document.getElementById('tSearch').value||'').toLowerCase();document.querySelectorAll('#tList .result').forEach(c=>c.style.display=c.innerText.toLowerCase().includes(q)?'flex':'none')}
+function fillSelect(id,arr,placeholder){const s=document.getElementById(id);if(!s)return;const old=s.value;s.innerHTML=arr.length?arr.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join(''):`<option value="">${placeholder}</option>`;if(old&&[...s.options].some(o=>o.value===old))s.value=old}
+function renderTeams(){fillSelect('teamTournament',cache.tournaments,'Create a tournament first');const l=document.getElementById('teamList');l.innerHTML=cache.teams.map(t=>`<div class="diag"><b>${esc(t.name)}</b><div class="small">${esc(tournamentName(t.tournament_id))}</div></div>`).join('')||'<p class="small">No teams yet.</p>'}
+function renderPlayers(){fillSelect('playerTeam',cache.teams,'Create a team first');const l=document.getElementById('playerList');l.innerHTML=cache.players.map(p=>`<div class="diag"><b>${esc(p.name)}</b><div class="small">${esc(teamName(p.team_id))} · ${esc(p.role||'Player')}</div></div>`).join('')||'<p class="small">No players yet.</p>';setStatus('playerStatus',cache.teams.length?'✓ Select an existing team above.':'No teams found. Create a team first.',cache.teams.length?'ok':'info')}
+function renderFixtures(){fillSelect('fixtureTournament',cache.tournaments,'Create a tournament first');fillSelect('fixtureTeamA',cache.teams,'Create a team first');fillSelect('fixtureTeamB',cache.teams,'Create a team first');document.getElementById('fixtureList').innerHTML=cache.fixtures.map(f=>`<div class="match-card"><div><b>${esc(teamName(f.team_a))} vs ${esc(teamName(f.team_b))}</b><div class="muted">${esc(tournamentName(f.tournament_id))} · ${esc(f.venue||'')}</div></div><span class="scorepill">${esc(f.status||'scheduled')}</span></div>`).join('')||'<p class="small">No fixtures yet.</p>'}
+async function createTournament(){const n=document.getElementById('tName').value.trim();if(!n)return setStatus('tStatus','Enter a tournament name.','err');try{const x=await post('tournaments',{name:n});cache.tournaments.push(...(Array.isArray(x)?x:[x]));saveCache();document.getElementById('tName').value='';setStatus('tStatus','✓ Tournament created.','ok');renderTournaments()}catch(e){setStatus('tStatus',esc(e.message),'err')}}
+async function createTeam(){const name=document.getElementById('teamName').value.trim(),tid=document.getElementById('teamTournament').value;if(!tid)return setStatus('teamStatus','Select a tournament first.','err');if(!name)return setStatus('teamStatus','Enter a team name.','err');try{const x=await post('teams',{name,tournament_id:tid});cache.teams.push(...(Array.isArray(x)?x:[x]));saveCache();document.getElementById('teamName').value='';setStatus('teamStatus','✓ Team created.','ok');renderTeams()}catch(e){setStatus('teamStatus',esc(e.message),'err')}}
+async function createPlayer(){const name=document.getElementById('playerName').value.trim(),team_id=document.getElementById('playerTeam').value,role=document.getElementById('playerRole').value;if(!team_id)return setStatus('playerStatus','Select a team first.','err');if(!name)return setStatus('playerStatus','Enter a player name.','err');try{const x=await post('players',{name,team_id,role});cache.players.push(...(Array.isArray(x)?x:[x]));saveCache();document.getElementById('playerName').value='';setStatus('playerStatus','✓ Player created.','ok');renderPlayers()}catch(e){setStatus('playerStatus',esc(e.message),'err')}}
+async function createFixture(){const p={tournament_id:document.getElementById('fixtureTournament').value,team_a:document.getElementById('fixtureTeamA').value,team_b:document.getElementById('fixtureTeamB').value,venue:document.getElementById('fixtureVenue').value||null,match_time:document.getElementById('fixtureTime').value?new Date(document.getElementById('fixtureTime').value).toISOString():null,status:'scheduled'};if(!p.tournament_id||!p.team_a||!p.team_b)return setStatus('fixtureStatus','Select tournament and both teams.','err');if(p.team_a===p.team_b)return setStatus('fixtureStatus','Team A and Team B must be different.','err');try{const x=await post('fixtures',p);cache.fixtures.push(...(Array.isArray(x)?x:[x]));saveCache();setStatus('fixtureStatus','✓ Fixture created.','ok');renderFixtures()}catch(e){setStatus('fixtureStatus',esc(e.message),'err')}}
+function openTournament(id){currentTournament=id;show('centre');renderTournament(id,'HOME')}
+function renderTournament(id,tab){const t=cache.tournaments.find(x=>x.id===id);if(!t)return;const teams=cache.teams.filter(x=>x.tournament_id===id);const fixtures=cache.fixtures.filter(x=>x.tournament_id===id);const matches=cache.matches.filter(m=>fixtures.some(f=>f.id===m.fixture_id));const wrap=document.getElementById('tournamentDetail');let body='';if(tab==='HOME'){const winners=matches.filter(m=>m.winner).slice(-1)[0];const winner=winners?.winner?teamName(winners.winner):'—';const others=teams.filter(x=>x.id!==winners?.winner);const topRuns=topRunStats(id)[0],topW=topWicketStats(id)[0];body=`<div class="winner-row"><div class="winner-col"><small>PLAYER</small><div class="team-badge">👤</div><b>${esc(topRuns?.name||'—')}</b></div><div class="winner-col"><small>WINNER</small><div class="team-badge">🏆</div><b>${esc(winner)}</b></div><div class="winner-col"><small>RUNNER</small><div class="team-badge">🥈</div><b>${esc(others[0]?.name||'—')}</b></div></div><div class="section-title">Top Players</div><div class="topstats"><div><div class="bigstat">${topRuns?.runs||0}</div><div class="bigstat-label">Most Runs<br><b>${esc(topRuns?.name||'—')}</b><br>${esc(teamName(topRuns?.team_id))}</div></div><div><div class="bigstat">${topW?.wickets||0}</div><div class="bigstat-label">Most Wickets<br><b>${esc(topW?.name||'—')}</b><br>${esc(teamName(topW?.team_id))}</div></div></div><div class="section-title">Tournament Teams</div>${teams.map(x=>`<div class="listcard"><h3>${esc(x.name)}</h3><div class="muted">${playersOf(x.id).length} players in squad</div></div>`).join('')||'<p class="small">No teams yet.</p>'}`;}else if(tab==='TEAMS'){body=`<div class="section-title">Teams & Squads</div>${teams.map(x=>`<div class="listcard"><h3>${esc(x.name)}</h3><div class="squad-grid">${playersOf(x.id).map(p=>`<div class="player-card"><div class="player-avatar">👤</div><b>${esc(p.name)}</b><div class="muted">${esc(p.role||'Player')}</div></div>`).join('')||'<div class="muted">No squad players yet.</div>'}</div></div>`).join('')||'<p class="small">No teams in this tournament.</p>'}`;}else if(tab==='MATCHES'){body=`<div class="section-title">Matches</div>${fixtures.map(f=>`<div class="match-card"><div><b>${esc(teamName(f.team_a))} vs ${esc(teamName(f.team_b))}</b><div class="muted">${esc(f.venue||'Venue not set')} · ${f.match_time?new Date(f.match_time).toLocaleString():''}</div></div><span class="scorepill">${esc(f.status||'scheduled')}</span></div>`).join('')||'<p class="small">No matches scheduled.</p>'}`;}else if(tab==='POINTS'){body=pointsTable(id,teams,fixtures,matches)}else{body=statsTable(id)}wrap.innerHTML=`<div class="tour-hero"><button class="backbtn" onclick="show('explore')">←</button><div class="tour-cover">🏏<br>${esc(t.name)}</div><div class="tour-head"><div class="tour-actions"><button class="circlebtn">♡</button><button class="circlebtn">↗</button></div><h2>${esc(t.name)}</h2><div class="tour-meta">${esc(t.format||'League')} · ${esc(t.overs||10)} overs<br>${teams.length} teams · ${fixtures.length} matches</div></div><div class="tour-tabs">${['HOME','TEAMS','MATCHES','POINTS','STATISTICS'].map(x=>`<button class="${tab===x?'active':''}" onclick="renderTournament('${esc(id)}','${x}')">${x}</button>`).join('')}</div></div><div class="card">${body}</div>`}
+function pointsTable(id,teams,fixtures,matches){const rows=teams.map(t=>({name:t.name,p:0,w:0,l:0,t:0,nr:0,pts:0}));const by=new Map(rows.map(r=>[r.name,r]));fixtures.forEach(f=>{const m=matches.find(x=>x.fixture_id===f.id);const a=by.get(teamName(f.team_a)),b=by.get(teamName(f.team_b));if(!a||!b)return;a.p++;b.p++;if(m?.winner===f.team_a){a.w++;b.l++;a.pts+=2}else if(m?.winner===f.team_b){b.w++;a.l++;b.pts+=2}else if(m?.status==='completed'){a.t++;b.t++;a.pts++;b.pts++}});rows.sort((a,b)=>b.pts-a.pts||b.w-a.w);return `<div class="section-title">Points Table</div><div class="tablewrap"><table class="ptable"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>L</th><th>T/NR</th><th>Pts</th><th>NRR</th></tr></thead><tbody>${rows.map((r,i)=>`<tr><td>${i+1}</td><td><b>${esc(r.name)}</b></td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td><td>${r.t}</td><td><b>${r.pts}</b></td><td>—</td></tr>`).join('')}</tbody></table></div><p class="small">NRR will be calculated automatically once completed scorecard/delivery data is recorded.</p>`}
+function deliveryStats(id){const tids=new Set(cache.teams.filter(t=>t.tournament_id===id).map(t=>t.id)),pmap=new Map(cache.players.map(p=>[p.name,p]));const fxids=new Set(cache.fixtures.filter(f=>f.tournament_id===id).map(f=>f.id));const mids=new Set(cache.matches.filter(m=>fxids.has(m.fixture_id)).map(m=>m.id));const del=cache.deliveries||[];const map=new Map();for(const d of del){if(!mids.has(d.match_id))continue;const p=pmap.get(d.striker);if(p&&tids.has(p.team_id)){const x=map.get(p.id)||{name:p.name,team_id:p.team_id,runs:0,wickets:0,balls:0};x.runs+=Number(d.runs||0);x.balls+=1;map.set(p.id,x)}if(d.event_type&&/wicket/i.test(d.event_type)){const b=pmap.get(d.bowler);if(b&&tids.has(b.team_id)){const x=map.get(b.id)||{name:b.name,team_id:b.team_id,runs:0,wickets:0,balls:0};x.wickets++;map.set(b.id,x)}}}return [...map.values()]}
+function topRunStats(id){return deliveryStats(id).sort((a,b)=>b.runs-a.runs)}function topWicketStats(id){return deliveryStats(id).sort((a,b)=>b.wickets-a.wickets)}
+function statsTable(id){const s=deliveryStats(id);return `<div class="section-title">Player Statistics</div><div class="tablewrap"><table class="ptable"><thead><tr><th>Player</th><th>Team</th><th>Runs</th><th>Balls</th><th>Wkts</th><th>SR</th></tr></thead><tbody>${s.sort((a,b)=>b.runs-a.runs).map(x=>`<tr><td><b>${esc(x.name)}</b></td><td>${esc(teamName(x.team_id))}</td><td>${x.runs}</td><td>${x.balls}</td><td>${x.wickets}</td><td>${x.balls?((x.runs/x.balls)*100).toFixed(1):'0.0'}</td></tr>`).join('')}</tbody></table></div>`}
+async function runDiagnostics(){const c=document.getElementById('url').value.trim(),k=document.getElementById('key').value.trim();if(!k)return setStatus('connStatus','Enter your publishable key.','err');localStorage.setItem(LS,JSON.stringify({url:VERIFIED_URL,key:k}));setStatus('connStatus','Testing…','info');try{await rest('tournaments');setStatus('connStatus','✓ Supabase connected.','ok');await loadData();runGlobalSearch()}catch(e){setStatus('connStatus','Connection failed: '+esc(e.message),'err')}}
+function loadSaved(){const c=cfg();document.getElementById('url').value=VERIFIED_URL;document.getElementById('key').value=c.key||'';setStatus('connStatus',c.key?'Saved connection loaded.':'Enter your publishable key.','info')}
+window.addEventListener('load',async()=>{loadSaved();await loadData();renderTournaments();runGlobalSearch();fillSelect('teamTournament',cache.tournaments,'Create a tournament first');fillSelect('playerTeam',cache.teams,'Create a team first');fillSelect('fixtureTournament',cache.tournaments,'Create a tournament first');fillSelect('fixtureTeamA',cache.teams,'Create a team first');fillSelect('fixtureTeamB',cache.teams,'Create a team first')});
 </script>
 </body>
 </html>
