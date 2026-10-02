@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V24</title>
+<title>ROBIN CUT SCORER V28</title>
 <style>
 nav button, button, select, input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 nav button { pointer-events: auto; }
@@ -19,7 +19,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V24</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V28</p></header>
 <nav>
 <button class="active" onclick="show('dashboard',this)">Dashboard</button>
 <button onclick="show('connection',this)">Connection</button>
@@ -30,7 +30,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V24 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V28 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -45,7 +45,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <div id="diagnostics"></div>
 </div>
 <div class="card">
-<h3>What V24 checks</h3>
+<h3>What V28 checks</h3>
 <p class="small">1. URL format → 2. browser can reach Supabase → 3. REST endpoint response → 4. rcs_tournaments table → 5. browser origin/network details → 6. tournament/team data path.</p>
 <p class="small"><b>No schema reset is performed by this page.</b></p>
 </div>
@@ -82,13 +82,26 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <div id="playerList"></div>
 </div>
 </section>
-<section id="fixtures" class="hidden"><div class="card"><h2>Fixtures &amp; Matches</h2><div id="fixtureList"></div></div></section>
+<section id="fixtures" class="hidden">
+<div class="card">
+<h2>Fixtures &amp; Matches</h2>
+<p class="small">Create tournament fixtures by selecting the tournament, two different teams, venue and match time. Fixtures are saved directly in Supabase.</p>
+<label>Tournament</label><select id="fixtureTournament"></select>
+<label>Team A</label><select id="fixtureTeamA"></select>
+<label>Team B</label><select id="fixtureTeamB"></select>
+<label>Venue</label><input id="fixtureVenue" placeholder="e.g. Kaluthavalai Ground">
+<label>Match date &amp; time</label><input id="fixtureTime" type="datetime-local">
+<button class="primary" onclick="createFixture()">Create Fixture</button>
+<div id="fixtureStatus"></div>
+</div>
+<div class="card"><h3>Saved Fixtures</h3><div id="fixtureList"></div></div>
+</section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V24';
-const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
+const LS='ROBIN_CUT_SCORER_V28';
+const VERIFIED_URL='https://oszjutmbgnllxjicljob.supabase.co';
 const OLD_URL='https://oszjutmbgnllxjicljob.supabase.co';
-const LEGACY_KEYS=['ROBIN_CUT_SCORER_V24','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
+const LEGACY_KEYS=['ROBIN_CUT_SCORER_V28','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
 const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
 function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return {}}}
 function cfg(){
@@ -202,11 +215,15 @@ function render(name,data,err){
  if(name==='tournaments'){
    if(!data.length){el.innerHTML='<p class="small">No records yet.</p>';fillTournamentSelect([]);return}
    el.innerHTML='<div class="small">'+data.length+' tournament(s) loaded from Supabase.</div>'+data.map(t=>'<div class="diag"><b>'+esc(t.name)+'</b><div class="small">Format: '+esc(t.format||'League')+' · Overs: '+esc(t.overs??10)+'</div></div>').join('');
+   cacheTournaments(data);
    fillTournamentSelect(data);
+   fillFixtureSelects();
    return;
  }
  if(name==='teams'){
+   cacheTeams(data);
    fillTeamSelect(data);
+   fillFixtureSelects();
    if(!data.length){el.innerHTML='<p class="small">No teams yet. Create the first team above.</p>';return}
    el.innerHTML='<div class="small">'+data.length+' team(s) loaded from Supabase.</div>'+data.map((t,i)=>'<div class="diag"><b>'+(i+1)+'. '+esc(t.name)+'</b><div class="small">Team ID: '+esc(t.id)+'</div></div>').join('');
    return;
@@ -219,10 +236,61 @@ function render(name,data,err){
      (p.role?' · Role: '+esc(p.role):'')+(p.jersey_no!=null?' · Jersey: '+esc(p.jersey_no):'')+'</div></div>').join('');
    return;
  }
+ if(name==='fixtures'){
+   const teams=getCachedTeams(); const names=Object.fromEntries(teams.map(t=>[t.id,t.name]));
+   if(!data.length){el.innerHTML='<p class="small">No fixtures yet. Create the first fixture above.</p>';return}
+   el.innerHTML='<div class="small">'+data.length+' fixture(s) loaded from Supabase.</div>'+data.map((f,i)=>{
+     const dt=f.match_time?new Date(f.match_time).toLocaleString(): 'Time not set';
+     return '<div class="diag"><b>'+(i+1)+'. '+esc(names[f.team_a]||f.team_a)+' vs '+esc(names[f.team_b]||f.team_b)+'</b><div class="small">'+esc(f.venue||'Venue not set')+' · '+esc(dt)+' · Status: '+esc(f.status||'scheduled')+'</div></div>'
+   }).join('');
+   return;
+ }
  if(!data.length){el.innerHTML='<p class="small">No records yet.</p>';return}
  el.innerHTML='<div class="small">'+data.length+' record(s) loaded from Supabase.</div>';
 }
 
+function cacheTournaments(data){
+ try{localStorage.setItem('RCS_TOURNAMENT_CACHE',JSON.stringify(data||[]))}catch(e){}
+}
+function getCachedTournaments(){
+ try{return JSON.parse(localStorage.getItem('RCS_TOURNAMENT_CACHE')||'[]')}catch(e){return []}
+}
+function fillFixtureSelects(){
+ const ts=getCachedTournaments(), teams=getCachedTeams();
+ const ft=document.getElementById('fixtureTournament');
+ const a=document.getElementById('fixtureTeamA');
+ const b=document.getElementById('fixtureTeamB');
+ if(ft){const cur=ft.value; ft.innerHTML=ts.length?ts.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a tournament first</option>'; if(cur && [...ft.options].some(o=>o.value===cur))ft.value=cur;}
+ if(a){const cur=a.value; a.innerHTML=teams.length?teams.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a team first</option>'; if(cur && [...a.options].some(o=>o.value===cur))a.value=cur;}
+ if(b){const cur=b.value; b.innerHTML=teams.length?teams.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a team first</option>'; if(cur && [...b.options].some(o=>o.value===cur))b.value=cur;}
+}
+async function loadFixtureData(){
+ const c=cfg();
+ if(!c.key){fillFixtureSelects();setStatus('fixtureStatus','Open Connection once and load your saved Supabase key.','err');return}
+ try{const ts=await rest('tournaments');cacheTournaments(ts);fillTournamentSelect(ts);fillFixtureSelects()}catch(e){const ts=getCachedTournaments(); if(ts.length){cacheTournaments(ts);fillTournamentSelect(ts);fillFixtureSelects()} else setStatus('fixtureStatus','Could not load tournaments: '+esc(e.message),'err')}
+ try{const teams=await rest('teams');cacheTeams(teams);fillTeamSelect(teams);fillFixtureSelects()}catch(e){const teams=getCachedTeams(); if(teams.length){fillTeamSelect(teams);fillFixtureSelects()} else setStatus('fixtureStatus','Could not load teams: '+esc(e.message),'err')}
+}
+async function createFixture(){
+ const tournament_id=document.getElementById('fixtureTournament').value;
+ const team_a=document.getElementById('fixtureTeamA').value;
+ const team_b=document.getElementById('fixtureTeamB').value;
+ const venue=document.getElementById('fixtureVenue').value.trim();
+ const timeRaw=document.getElementById('fixtureTime').value;
+ const c=cfg();
+ if(!tournament_id){setStatus('fixtureStatus','Select a tournament first.','err');return}
+ if(!team_a||!team_b){setStatus('fixtureStatus','Select both teams.','err');return}
+ if(team_a===team_b){setStatus('fixtureStatus','Team A and Team B must be different.','err');return}
+ if(!c.key){setStatus('fixtureStatus','Run the Supabase connection test first.','err');return}
+ const payload={tournament_id,team_a,team_b,venue:venue||null,match_time:timeRaw?new Date(timeRaw).toISOString():null,status:'scheduled'};
+ try{
+   let r; try{r=await timedFetch(c.url+'/rest/v1/rcs_fixtures',{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)})}
+   catch(first){r=await timedFetch(c.url+'/rest/v1/rcs_fixtures?apikey='+encodeURIComponent(c.key),{method:'POST',headers:{'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)})}
+   const t=await r.text(); if(!r.ok)throw new Error('HTTP '+r.status+': '+t.slice(0,500));
+   document.getElementById('fixtureVenue').value=''; document.getElementById('fixtureTime').value='';
+   setStatus('fixtureStatus','✓ Fixture created.','ok');
+   await refreshAll();
+ }catch(e){setStatus('fixtureStatus','Create failed: '+esc(e.message),'err')}
+}
 function cacheTeams(data){
  try{localStorage.setItem('RCS_TEAM_CACHE',JSON.stringify(data||[]))}catch(e){}
 }
@@ -315,27 +383,27 @@ function show(id,btn){
  if(id==='teams'){
   const c=cfg();
   if(c.key){
-   rest('tournaments').then(d=>{
-    fillTournamentSelect(d);
-    if(!d.length)setStatus('teamStatus','No tournaments found in Supabase. Create a tournament first.','info');
-   }).catch(e=>setStatus('teamStatus','Could not load tournaments: '+esc(e.message),'err'));
+   rest('tournaments').then(d=>{cacheTournaments(d);fillTournamentSelect(d);fillFixtureSelects();if(!d.length)setStatus('teamStatus','No tournaments found in Supabase.','info');})
+    .catch(e=>{const cached=getCachedTournaments();if(cached.length){fillTournamentSelect(cached);fillFixtureSelects();setStatus('teamStatus','Tournament list loaded from saved app data.','info')}else setStatus('teamStatus','Could not load tournaments: '+esc(e.message),'err')});
   }else{
-   fillTournamentSelect([]);
-   setStatus('teamStatus','Saved Supabase key was not found. Open Connection once and load it.','err');
+   const cached=getCachedTournaments(); fillTournamentSelect(cached); fillFixtureSelects();
+   setStatus('teamStatus',cached.length?'Tournament list loaded from saved app data.':'Open Connection once and load your saved Supabase key.','info');
   }
  }
  if(id==='players'){
   const c=cfg();
   if(c.key){ loadPlayerTeams(); }
   else{
-   fillTeamSelect([]);
-   setStatus('playerStatus','Saved Supabase key was not found. Open Connection once and load it.','err');
+   const cached=getCachedTeams(); fillTeamSelect(cached);
+   setStatus('playerStatus',cached.length?'Teams loaded from saved app data.':'Open Connection once and load your saved Supabase key.','info');
   }
  }
+ if(id==='fixtures'){ loadFixtureData(); }
 }
 function showById(id){show(id,[...document.querySelectorAll('nav button')].find(b=>b.textContent.toLowerCase().includes(id.slice(0,-1))))}
 window.addEventListener('load',()=>{
  loadSaved();
+ try{cacheTournaments(getCachedTournaments());cacheTeams(getCachedTeams());fillFixtureSelects()}catch(e){}
  // Keep the interface interactive even if a network diagnostic hangs.
  // Diagnostics and data preloading run in the background and never block navigation.
  const c=cfg();
