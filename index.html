@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ROBIN CUT SCORER</title>
+<style>
+body{font-family:system-ui;margin:0;background:#f5f7fa;color:#17202a}.wrap{max-width:900px;margin:auto;padding:24px}
+.card{background:white;border-radius:16px;padding:20px;margin:14px 0;box-shadow:0 2px 12px #0001}
+h1{margin-bottom:4px}.muted{color:#68737d}input,button{font:inherit;padding:12px;border-radius:10px;border:1px solid #ccd3da}input{width:100%;box-sizing:border-box;margin:6px 0 12px}button{background:#16834b;color:white;border:0;font-weight:700;cursor:pointer}.danger{background:#b42318}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}.status{padding:10px;border-radius:10px;background:#eef8f2}
+</style>
+</head>
+<body><div class="wrap">
+<h1>🏏 ROBIN CUT SCORER</h1><div class="muted">Online Cricket Tournament & Live Scoring</div>
+<div class="card">
+<h2>Connect your Supabase project</h2>
+<p class="muted">This first-run setup stores only the public project URL and publishable key in this browser. Never enter a secret/service-role key.</p>
+<label>Supabase Project URL</label><input id="url" placeholder="https://your-project.supabase.co">
+<label>Publishable key</label><input id="key" placeholder="sb_publishable_...">
+<button id="save">Connect ROBIN CUT SCORER</button>
+<div id="msg" class="status" style="margin-top:12px">Not connected</div>
+</div>
+<div class="card">
+<h2>What this version prepares</h2>
+<div class="grid">
+<div>🔐 Supabase authentication foundation</div><div>🏆 Tournament management</div><div>👥 Teams & players</div><div>📅 Fixtures & matches</div><div>🏏 Ball-by-ball scoring</div><div>📡 Live score architecture</div>
+</div>
+</div>
+</div>
+<script>
+const u=document.getElementById('url'), k=document.getElementById('key'), msg=document.getElementById('msg');
+u.value=localStorage.getItem('RCS_SUPABASE_URL')||'';
+k.value=localStorage.getItem('RCS_SUPABASE_KEY')||'';
+document.getElementById('save').onclick=()=>{
+ const url=u.value.trim().replace(/\/$/,''); const key=k.value.trim();
+ if(!/^https:\/\/[^\s]+\.supabase\.co$/.test(url) || !key){msg.textContent='Please enter a valid Supabase Project URL and Publishable key.';return}
+ localStorage.setItem('RCS_SUPABASE_URL',url);localStorage.setItem('RCS_SUPABASE_KEY',key);
+ msg.textContent='✓ Supabase connection details saved. Next module can use this project.';
+};
+</script>
+</body></html>
