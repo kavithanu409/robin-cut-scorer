@@ -30,7 +30,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V28 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V30 uses the verified Supabase project URL and can recover an existing tournament from saved team records when the tournament list request is unavailable.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -98,10 +98,10 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V29';
+const LS='ROBIN_CUT_SCORER_V30';
 const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 const OLD_URL='https://oszjutmbgnllxjtjclob.supabase.co';
-const LEGACY_KEYS=['ROBIN_CUT_SCORER_V29','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
+const LEGACY_KEYS=['ROBIN_CUT_SCORER_V30','ROBIN_CUT_SCORER_V29','ROBIN_CUT_SCORER_V28','ROBIN_CUT_SCORER_V27','ROBIN_CUT_SCORER_V24','ROBIN_CUT_SCORER_V18','ROBIN_CUT_SCORER_V17','ROBIN_CUT_SCORER_V16'];
 const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
 function readStored(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch(e){return {}}}
 function cfg(){
@@ -135,7 +135,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V27 connection tests…','info');
+ setStatus('connStatus','Running V30 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
@@ -267,8 +267,11 @@ function fillFixtureSelects(){
 async function loadFixtureData(){
  const c=cfg();
  if(!c.key){fillFixtureSelects();setStatus('fixtureStatus','Open Connection once and load your saved Supabase key.','err');return}
- try{const ts=await rest('tournaments');cacheTournaments(ts);fillTournamentSelect(ts);fillFixtureSelects()}catch(e){const ts=getCachedTournaments(); if(ts.length){cacheTournaments(ts);fillTournamentSelect(ts);fillFixtureSelects()} else setStatus('fixtureStatus','Could not load tournaments: '+esc(e.message),'err')}
- try{const teams=await rest('teams');cacheTeams(teams);fillTeamSelect(teams);fillFixtureSelects()}catch(e){const teams=getCachedTeams(); if(teams.length){fillTeamSelect(teams);fillFixtureSelects()} else setStatus('fixtureStatus','Could not load teams: '+esc(e.message),'err')}
+ let teamData=[];
+ try{const ts=await rest('tournaments');cacheTournaments(ts);fillTournamentSelect(ts);fillFixtureSelects()}
+ catch(e){const ts=getCachedTournaments(); if(ts.length){cacheTournaments(ts);fillTournamentSelect(ts);fillFixtureSelects()} else setStatus('fixtureStatus','Tournament list unavailable; checking existing teams…','info')}
+ try{teamData=await rest('teams');cacheTeams(teamData);fillTeamSelect(teamData);fillTournamentAndFixtureFromTeams(teamData);fillFixtureSelects()}
+ catch(e){const teams=getCachedTeams(); if(teams.length){teamData=teams;fillTeamSelect(teams);fillTournamentAndFixtureFromTeams(teams);fillFixtureSelects()} else setStatus('fixtureStatus','Could not load teams: '+esc(e.message),'err')}
 }
 async function createFixture(){
  const tournament_id=document.getElementById('fixtureTournament').value;
@@ -350,9 +353,25 @@ async function createPlayer(){
 function fillTournamentSelect(data){
  const s=document.getElementById('teamTournament'); if(!s)return;
  const current=s.value;
- s.innerHTML=data.length?data.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>').join(''):'<option value="">Create a tournament first</option>';
+ s.innerHTML=data.length?data.map(t=>'<option value="'+esc(t.id)+'">'+esc(t.name||('Existing tournament '+String(t.id).slice(0,8)))+'</option>').join(''):'<option value="">Create a tournament first</option>';
  if(current && [...s.options].some(o=>o.value===current))s.value=current;
 }
+function deriveTournamentOptionsFromTeams(teams){
+ const ids=[...new Set((teams||[]).map(t=>t.tournament_id).filter(Boolean))];
+ if(!ids.length)return [];
+ const cached=getCachedTournaments();
+ return ids.map(id=>cached.find(t=>t.id===id)||({id,name:'Existing tournament · '+String(id).slice(0,8)}));
+}
+function fillTournamentAndFixtureFromTeams(teams){
+ const derived=deriveTournamentOptionsFromTeams(teams);
+ if(derived.length){
+   const cached=getCachedTournaments();
+   if(!cached.length || !derived.every(d=>cached.some(c=>c.id===d.id))){
+     const merged=[...cached]; for(const d of derived) if(!merged.some(x=>x.id===d.id)) merged.push(d); cacheTournaments(merged);
+   }
+   fillTournamentSelect(derived);
+   fillFixtureSelects();
+ }
 async function createTeam(){
  const name=document.getElementById('teamName').value.trim();
  const tournament_id=document.getElementById('teamTournament').value;
@@ -383,8 +402,19 @@ function show(id,btn){
  if(id==='teams'){
   const c=cfg();
   if(c.key){
-   rest('tournaments').then(d=>{cacheTournaments(d);fillTournamentSelect(d);fillFixtureSelects();if(!d.length)setStatus('teamStatus','No tournaments found in Supabase.','info');})
-    .catch(e=>{const cached=getCachedTournaments();if(cached.length){fillTournamentSelect(cached);fillFixtureSelects();setStatus('teamStatus','Tournament list loaded from saved app data.','info')}else setStatus('teamStatus','Could not load tournaments: '+esc(e.message),'err')});
+   Promise.allSettled([rest('tournaments'),rest('teams')]).then(results=>{
+     const tr=results[0], tm=results[1];
+     if(tr.status==='fulfilled'){
+       cacheTournaments(tr.value); fillTournamentSelect(tr.value); fillFixtureSelects();
+     }
+     if(tm.status==='fulfilled'){
+       cacheTeams(tm.value); fillTournamentAndFixtureFromTeams(tm.value);
+     }
+     const hasTournament=tr.status==='fulfilled' && tr.value.length;
+     const hasDerived=tm.status==='fulfilled' && deriveTournamentOptionsFromTeams(tm.value).length;
+     if(!hasTournament && hasDerived) setStatus('teamStatus','Existing tournament recovered from the teams already saved in Supabase.','info');
+     else if(!hasTournament && !hasDerived){ const cached=getCachedTournaments(); if(cached.length){fillTournamentSelect(cached);fillFixtureSelects();setStatus('teamStatus','Tournament list loaded from saved app data.','info')} else setStatus('teamStatus','Could not load tournaments yet. You can create a new tournament above.','err'); }
+   });
   }else{
    const cached=getCachedTournaments(); fillTournamentSelect(cached); fillFixtureSelects();
    setStatus('teamStatus',cached.length?'Tournament list loaded from saved app data.':'Open Connection once and load your saved Supabase key.','info');
@@ -410,15 +440,16 @@ window.addEventListener('load',()=>{
  if(c.url&&c.key){
    setTimeout(()=>{ try{ runDiagnostics(); }catch(e){} },800);
    setTimeout(async ()=>{
+     let preTeams=[];
      try{ const d=await Promise.race([
        rest('tournaments'),
        new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
-     ]); fillTournamentSelect(d);
+     ]); cacheTournaments(d); fillTournamentSelect(d);
      }catch(e){}
      try{ const d=await Promise.race([
        rest('teams'),
        new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
-     ]); cacheTeams(d); fillTeamSelect(d);
+     ]); preTeams=d; cacheTeams(d); fillTeamSelect(d); fillTournamentAndFixtureFromTeams(d);
      }catch(e){}
    },1200);
  }
