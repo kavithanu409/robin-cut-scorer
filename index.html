@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V29</title>
+<title>ROBIN CUT SCORER V31</title>
 <style>
 nav button, button, select, input { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 nav button { pointer-events: auto; }
 
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{background:#111827;color:white;padding:24px 18px 20px}header h1{margin:0;font-size:30px}header p{margin:7px 0 0;color:#cbd5e1}
-nav{display:flex;gap:10px;overflow:auto;background:#fff;padding:14px;border-bottom:1px solid #dbe3ee}nav button{white-space:nowrap;border:1px solid #dbe3ee;background:#fff;color:#2879ed;border-radius:14px;padding:12px 18px;font-weight:800;font-size:16px}nav button.active{background:#3d8d55;color:#fff;border-color:#3d8d55}
+nav{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;background:#fff;padding:14px;border-bottom:1px solid #dbe3ee}nav button{flex:0 0 auto;min-height:48px;white-space:nowrap;border:1px solid #dbe3ee;background:#fff;color:#2879ed;border-radius:14px;padding:12px 18px;font-weight:800;font-size:16px}nav button.active{background:#3d8d55;color:#fff;border-color:#3d8d55}
 main{max-width:950px;margin:auto;padding:20px 16px 60px}.card{background:#fff;border:1px solid #dbe3ee;border-radius:24px;padding:22px;margin-bottom:18px;box-shadow:0 4px 18px #1720330d}
 .hero{background:linear-gradient(135deg,#111827,#296b46);color:#fff}.hero h2{font-size:32px;margin:0 0 10px}.hero p{color:#dbe8df;font-size:18px;line-height:1.45}
 h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,select{width:100%;padding:15px;border:2px solid #d7e0eb;border-radius:14px;font-size:16px;background:#fff}button.primary{border:0;border-radius:14px;background:#3d8d55;color:white;padding:14px 20px;font-size:16px;font-weight:800;margin-top:16px}button.secondary{border:0;border-radius:14px;background:#edf3ff;color:#2879ed;padding:14px 20px;font-size:16px;font-weight:800;margin-top:16px}
@@ -19,18 +19,18 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V28</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V31</p></header>
 <nav>
-<button class="active" onclick="show('dashboard',this)">Dashboard</button>
-<button onclick="show('connection',this)">Connection</button>
-<button onclick="show('tournaments',this)">Tournaments</button>
-<button onclick="show('teams',this)">Teams</button>
-<button onclick="show('players',this)">Players</button>
-<button onclick="show('fixtures',this)">Fixtures</button>
+<button type="button" class="active" onclick="show('dashboard',this)">Dashboard</button>
+<button type="button" onclick="show('connection',this)">Connection</button>
+<button type="button" onclick="show('tournaments',this)">Tournaments</button>
+<button type="button" onclick="show('teams',this)">Teams</button>
+<button type="button" onclick="show('players',this)">Players</button>
+<button type="button" onclick="show('fixtures',this)">Fixtures</button>
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V30 uses the verified Supabase project URL and can recover an existing tournament from saved team records when the tournament list request is unavailable.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V31 uses the verified Supabase project URL and can recover an existing tournament from saved team records when the tournament list request is unavailable.</p><div class="row"><button type="button" class="primary" onclick="showById('connection')">Connection Test</button><button type="button" class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -40,7 +40,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <p class="small">Use only the public <b>sb_publishable_...</b> key. Never use a secret/service-role key.</p>
 <label>Project URL</label><input id="url" placeholder="https://your-project.supabase.co">
 <label>Publishable key</label><input id="key" type="password" placeholder="sb_publishable_...">
-<div class="row"><button class="primary" onclick="runDiagnostics()">Run Full Connection Test</button><button class="secondary" onclick="loadSaved()">Load Saved</button></div>
+<div class="row"><button type="button" class="primary" onclick="runDiagnostics()">Run Full Connection Test</button><button type="button" class="secondary" onclick="loadSaved()">Load Saved</button></div>
 <div id="connStatus" class="status info">Not tested yet.</div>
 <div id="diagnostics"></div>
 </div>
@@ -51,14 +51,14 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 </div>
 </section>
 
-<section id="tournaments" class="hidden"><div class="card"><h2>Tournaments</h2><label>Tournament name</label><input id="tName" placeholder="e.g. BAPL Season Two 2027"><button class="primary" onclick="createTournament()">Create Tournament</button><div id="tStatus"></div><div id="tList"></div></div></section>
+<section id="tournaments" class="hidden"><div class="card"><h2>Tournaments</h2><label>Tournament name</label><input id="tName" placeholder="e.g. BAPL Season Two 2027"><button type="button" class="primary" onclick="createTournament()">Create Tournament</button><div id="tStatus"></div><div id="tList"></div></div></section>
 <section id="teams" class="hidden">
 <div class="card">
 <h2>Teams</h2>
 <p class="small">Add teams to a tournament. Teams are saved directly in Supabase.</p>
 <label>Tournament</label><select id="teamTournament"></select>
 <label>Team name</label><input id="teamName" placeholder="e.g. BATTI NANBARKAL">
-<button class="primary" onclick="createTeam()">Create Team</button>
+<button type="button" class="primary" onclick="createTeam()">Create Team</button>
 <div id="teamStatus"></div>
 <div id="teamList"></div>
 </div>
@@ -77,7 +77,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <option value="Wicket-keeper">Wicket-keeper</option>
 </select>
 <label>Jersey number (optional)</label><input id="playerJersey" inputmode="numeric" placeholder="e.g. 7">
-<button class="primary" onclick="createPlayer()">Create Player</button>
+<button type="button" class="primary" onclick="createPlayer()">Create Player</button>
 <div id="playerStatus"></div>
 <div id="playerList"></div>
 </div>
@@ -91,7 +91,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input,sele
 <label>Team B</label><select id="fixtureTeamB"></select>
 <label>Venue</label><input id="fixtureVenue" placeholder="e.g. Kaluthavalai Ground">
 <label>Match date &amp; time</label><input id="fixtureTime" type="datetime-local">
-<button class="primary" onclick="createFixture()">Create Fixture</button>
+<button type="button" class="primary" onclick="createFixture()">Create Fixture</button>
 <div id="fixtureStatus"></div>
 </div>
 <div class="card"><h3>Saved Fixtures</h3><div id="fixtureList"></div></div>
@@ -434,26 +434,10 @@ function showById(id){show(id,[...document.querySelectorAll('nav button')].find(
 window.addEventListener('load',()=>{
  loadSaved();
  try{cacheTournaments(getCachedTournaments());cacheTeams(getCachedTeams());fillFixtureSelects()}catch(e){}
- // Keep the interface interactive even if a network diagnostic hangs.
- // Diagnostics and data preloading run in the background and never block navigation.
- const c=cfg();
- if(c.url&&c.key){
-   setTimeout(()=>{ try{ runDiagnostics(); }catch(e){} },800);
-   setTimeout(async ()=>{
-     let preTeams=[];
-     try{ const d=await Promise.race([
-       rest('tournaments'),
-       new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
-     ]); cacheTournaments(d); fillTournamentSelect(d);
-     }catch(e){}
-     try{ const d=await Promise.race([
-       rest('teams'),
-       new Promise((_,reject)=>setTimeout(()=>reject(new Error('preload timeout')),7000))
-     ]); preTeams=d; cacheTeams(d); fillTeamSelect(d); fillTournamentAndFixtureFromTeams(d);
-     }catch(e){}
-   },1200);
- }
-})
+ // V31: do not start network diagnostics or long preload requests automatically.
+ // This keeps all navigation and touch controls immediately responsive on iPhone Safari.
+ setStatus('dashStatus', cfg().key ? 'Saved connection loaded. Choose a section above.' : 'Open Connection to configure Supabase.','info');
+});
 </script>
 </body>
 </html>
