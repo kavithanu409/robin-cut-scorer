@@ -1,19 +1,14 @@
-ROBIN CUT SCORER V10
-====================
+ROBIN CUT SCORER V12
 
-This is the first integrated online-application foundation.
+V12 adds a real Supabase data path for tournaments, teams, players, fixtures, matches and deliveries, while retaining a local cache.
 
-Phone setup:
-1. Open index.html after publishing it.
-2. Enter your Supabase Project URL and the PUBLIC Publishable key.
-3. Never enter a secret/service-role key.
-4. The application stores these two public connection values in the browser.
+SETUP:
+1. Run schema-v12.sql once in Supabase SQL Editor.
+2. Open the website.
+3. Connection -> enter Project URL and the Supabase Publishable key.
+4. Save & Test Connection.
+5. Create a tournament; the record should appear in Supabase.
 
-Database:
-- Existing V9-style cricket tables are already created in the Supabase project.
-- schema-v10.sql adds authentication profiles and a first RLS foundation.
-- Before production, role-specific policies must be tightened and tested.
+Never put a Supabase secret/service-role key in the browser or GitHub.
 
-Important:
-This package is a development foundation, not yet the final production deployment.
-Next modules: login, admin dashboard, tournament CRUD, scorer, live public match page, and production deployment.
+Next production phase: authenticated Admin/Scorer roles, realtime subscriptions, full two-innings lifecycle, player-level batting/bowling statistics, NRR, knockout generation, public match links and full cricket-law validation.
