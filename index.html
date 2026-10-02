@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V15</title>
+<title>ROBIN CUT SCORER V16</title>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#f3f6fa;color:#172033;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
 header{background:#111827;color:white;padding:24px 18px 20px}header h1{margin:0;font-size:30px}header p{margin:7px 0 0;color:#cbd5e1}
@@ -16,7 +16,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input{widt
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V15</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V16</p></header>
 <nav>
 <button class="active" onclick="show('dashboard',this)">Dashboard</button>
 <button onclick="show('connection',this)">Connection</button>
@@ -27,7 +27,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input{widt
 </nav>
 <main>
 <section id="dashboard">
-<div class="card hero"><h2>Cricket Control Centre</h2><p>V14 adds detailed Supabase connectivity diagnostics so connection problems can be identified without repeatedly changing the database.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
+<div class="card hero"><h2>Cricket Control Centre</h2><p>V16 uses the verified Supabase project URL and keeps the connection diagnostics for troubleshooting.</p><div class="row"><button class="primary" onclick="showById('connection')">Connection Test</button><button class="secondary" onclick="showById('tournaments')">Tournaments</button></div></div>
 <div id="dashStatus" class="status info">Checking saved connection…</div>
 </section>
 
@@ -42,7 +42,7 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input{widt
 <div id="diagnostics"></div>
 </div>
 <div class="card">
-<h3>What V14 checks</h3>
+<h3>What V16 checks</h3>
 <p class="small">1. URL format → 2. browser can reach Supabase → 3. REST endpoint response → 4. rcs_tournaments table → 5. browser origin/network details.</p>
 <p class="small"><b>No schema reset is performed by this page.</b></p>
 </div>
@@ -54,14 +54,16 @@ h2{margin-top:0}label{display:block;font-weight:800;margin:17px 0 8px}input{widt
 <section id="fixtures" class="hidden"><div class="card"><h2>Fixtures &amp; Matches</h2><div id="fixtureList"></div></div></section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V15';
+const LS='ROBIN_CUT_SCORER_V16';
+const VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
+const OLD_URL='https://oszjutmbgnllxjicljob.supabase.co';
 const tables={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures'};
 function cfg(){try{return JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){return {}}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function setStatus(id,msg,type){const e=document.getElementById(id);e.className='status '+type;e.innerHTML=msg}
 function normalize(u){return (u||'').trim().replace(/\/+$/,'')}
 function addDiag(title,value,type='info'){document.getElementById('diagnostics').insertAdjacentHTML('beforeend','<div class="diag"><b>'+esc(title)+'</b><div class="mono">'+esc(value)+'</div></div>')}
-function loadSaved(){const c=cfg();document.getElementById('url').value=c.url||'';document.getElementById('key').value=c.key||'';setStatus('connStatus',c.url?'Saved connection loaded. Run Full Connection Test.':'No saved connection found.','info')}
+function loadSaved(){let c=cfg(); if(c.url===OLD_URL){c.url=VERIFIED_URL; localStorage.setItem(LS,JSON.stringify(c));} document.getElementById('url').value=c.url||VERIFIED_URL;document.getElementById('key').value=c.key||'';setStatus('connStatus',c.url?'Saved connection loaded. Run Full Connection Test.':'Verified Supabase URL loaded. Enter your publishable key.','info')}
 async function timedFetch(url,opts={},ms=10000){
  const ctl=new AbortController();const timer=setTimeout(()=>ctl.abort(),ms);
  try{return await fetch(url,{...opts,signal:ctl.signal,cache:'no-store'})}finally{clearTimeout(timer)}
@@ -72,7 +74,7 @@ async function runDiagnostics(){
  if(!u.startsWith('https://')||!u.includes('.supabase.co')){setStatus('connStatus','Invalid Supabase Project URL.','err');return}
  if(!k.startsWith('sb_publishable_')){setStatus('connStatus','The key must start with sb_publishable_.','err');return}
  localStorage.setItem(LS,JSON.stringify({url:u,key:k}));
- setStatus('connStatus','Running V15 connection tests…','info');
+ setStatus('connStatus','Running V16 connection tests…','info');
  addDiag('Browser origin',location.origin);
  addDiag('Supabase URL',u);
  addDiag('Key format','Valid sb_publishable_ prefix; key hidden.');
