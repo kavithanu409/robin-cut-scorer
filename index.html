@@ -32,7 +32,7 @@
 </style>
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V51</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V54</p></header>
 <nav class="mainnav"><button type="button" class="active" onclick="show('explore',this)">Home</button><button type="button" onclick="show('tournaments',this)">Tournaments</button><button type="button" onclick="show('teams',this)">Teams</button><button type="button" onclick="show('players',this)">Players</button><button type="button" onclick="show('fixtures',this)">Fixtures</button><button type="button" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -52,7 +52,7 @@
 <section id="connection" class="hidden"><div class="card"><h2>Supabase Connection</h2><p class="small">V42 keeps your existing local cache visible if Supabase is temporarily unreachable. You do not need to re-create tournaments, teams or players.</p><label>Project URL</label><input id="url" placeholder="https://xxxxxxxx.supabase.co"><label>Publishable key</label><input id="key" type="password" placeholder="sb_publishable_..."><div class="row"><button class="primary" onclick="runDiagnostics()">Run Full Connection Test</button><button class="secondary" onclick="loadSaved()">Load Saved</button></div><div id="connStatus" class="status info">Not tested yet.</div><div id="diagnostics"></div></div></section>
 </main>
 <script>
-const LS='ROBIN_CUT_SCORER_V46',VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
+const LS='ROBIN_CUT_SCORER_V54',VERIFIED_URL='https://oszjutmbgnllxjtjclob.supabase.co';
 let filter='Club', currentTournament=null, cache={tournaments:[],teams:[],players:[],fixtures:[],matches:[],deliveries:[]};
 const PHOTO_KEY='RCS41_photos', TOUR_META_KEY='RCS41_tour_meta';
 const CACHE_PREFIX='RCS41_';
@@ -72,14 +72,16 @@ function cfg(){let c=stored(LS);if(c.key){const u=(c.url||VERIFIED_URL).replace(
 function setStatus(id,msg,type='info'){const e=document.getElementById(id);if(e)e.className='status '+type,e.innerHTML=msg}
 async function timedFetch(url,opt={},timeout=15000){const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);try{return await fetch(url,{...opt,mode:'cors',cache:'no-store',signal:c.signal})}catch(e){if(e.name==='AbortError')throw Error('Request timed out after 15 seconds. Check your internet connection and Supabase project status.');throw e}finally{clearTimeout(t)}}
 function friendlyError(e){const m=String(e?.message||e||'Unknown error');if(/Failed to fetch|Load failed|NetworkError|network/i.test(m))return 'Browser could not reach Supabase. This is usually a network, CORS, DNS, or paused-project issue.';return m}
-async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+table+'?select=*&limit=1000';const r=await timedFetch(u,{headers:{apikey:c.key,Accept:'application/json'}});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
-async function post(table,payload){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const r=await timedFetch(c.url+'/rest/v1/'+table,{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
+const TABLES={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures',matches:'rcs_matches',deliveries:'rcs_deliveries'};
+function dbTable(table){return TABLES[table]||table}
+async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&limit=1000';const r=await timedFetch(u,{headers:{apikey:c.key,Accept:'application/json'}});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
+async function post(table,payload){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
 function saveCache(){try{for(const k of ['tournaments','teams','players','fixtures','matches','deliveries'])localStorage.setItem(CACHE_PREFIX+k,JSON.stringify(cache[k]))}catch{}}
 function loadCache(){for(const k of ['tournaments','teams','players','fixtures','matches','deliveries']){try{const a=JSON.parse(localStorage.getItem(CACHE_PREFIX+k)||'[]');cache[k]=Array.isArray(a)?a:[]}catch{cache[k]=[]}}}
 async function del(table,filters){
   const c=cfg(); if(!c.key)throw Error('No Supabase publishable key');
   const qs=Object.entries(filters).map(([k,v])=>encodeURIComponent(k)+'=eq.'+encodeURIComponent(v)).join('&');
-  const r=await timedFetch(c.url+'/rest/v1/'+table+'?'+qs,{method:'DELETE',headers:{apikey:c.key,Prefer:'return=minimal'}});
+  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?'+qs,{method:'DELETE',headers:{apikey:c.key,Prefer:'return=minimal'}});
   const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500)); return true;
 }
 function removePhoto(id){try{const o=photoStore();delete o[id];localStorage.setItem(PHOTO_KEY,JSON.stringify(o))}catch{}}
