@@ -279,7 +279,7 @@ async function createTournamentFixture(tid){
     document.getElementById('tournamentFixtureModal')?.remove();renderFixtures();renderTournament(tid,'MATCHES');
   }catch(e){setStatus('tfStatus',esc(e.message),'err')}
 }
-function createFixture(){
+async function createFixture(){
   const p={tournament_id:document.getElementById('fixtureTournament').value,team_a:document.getElementById('fixtureTeamA').value,team_b:document.getElementById('fixtureTeamB').value,venue:document.getElementById('fixtureVenue').value||null,match_time:document.getElementById('fixtureTime').value?new Date(document.getElementById('fixtureTime').value).toISOString():null,status:'scheduled'};
   if(!p.tournament_id||!p.team_a||!p.team_b)return setStatus('fixtureStatus','Select tournament and both teams.','err'); if(p.team_a===p.team_b)return setStatus('fixtureStatus','Team A and Team B must be different.','err');
   try{let x;try{x=await post('fixtures',p)}catch(e){if(/match_time|PGRST204|schema cache/i.test(e.message||'')){x=await post('fixtures',{tournament_id:p.tournament_id,team_a:p.team_a,team_b:p.team_b,venue:p.venue,status:p.status})}else throw e}const arr=Array.isArray(x)?x:[x];cache.fixtures.push(...arr);if(p.match_time&&arr[0]?.id)saveFixtureMeta(arr[0].id,{match_time:p.match_time});saveCache();document.getElementById('fixtureVenue').value='';document.getElementById('fixtureTime').value='';setStatus('fixtureStatus','✓ Fixture created.','ok');renderFixtures();}
