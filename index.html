@@ -172,21 +172,48 @@ async function loadData(){
  loadCache();
  const c=cfg();
  if(!c.key){lastSyncMessage='No saved connection';updateSyncBanner();return {ok:false,reason:lastSyncMessage}}
- let ok=0,failed=0;
- for(const k of ['tournaments','teams','players','fixtures','matches','deliveries']){
+ let ok=0,failed=0,pushed=0;
+ const keys=['tournaments','teams','players','fixtures','matches','deliveries'];
+ for(const k of keys){
    try{
-     const remote=await rest(k),local=Array.isArray(cache[k])?cache[k]:[],by=new Map();
-     for(const row of local){if(row&&row.id)by.set(row.id,row)}
-     for(const row of remote){if(row&&row.id)by.set(row.id,{...(by.get(row.id)||{}),...row})}
+     const local=Array.isArray(cache[k])?cache[k]:[];
+     const remote=await rest(k);
+     const remoteIds=new Set((remote||[]).filter(x=>x&&x.id).map(x=>x.id));
+     const by=new Map(local.filter(x=>x&&x.id).map(x=>[x.id,x]));
+
+     // IMPORTANT: local data is authoritative for this browser.
+     // Remote data can fill missing records, but can never erase or replace
+     // an existing local record during refresh.
+     for(const row of (remote||[])){
+       if(!row||!row.id)continue;
+       if(!by.has(row.id))by.set(row.id,row);
+     }
      cache[k]=Array.from(by.values());
+
+     // Push locally-created records that are not yet on Supabase.
+     // Failures are ignored here so the local copy remains safe.
+     for(const row of local){
+       if(!row||!row.id||remoteIds.has(row.id))continue;
+       try{
+         const copy={...row};
+         delete copy.__localOnly;
+         const result=await post(k,copy);
+         const saved=Array.isArray(result)?result[0]:result;
+         if(saved){
+           const i=cache[k].findIndex(x=>x.id===row.id);
+           if(i>=0)cache[k][i]={...cache[k][i],...saved};
+         }
+         pushed++;
+       }catch(e){}
+     }
      ok++;
    }catch(e){failed++}
  }
  saveCache();
  lastSyncOk=failed===0;
  lastSyncMessage=failed
-   ? `Loaded local data; ${ok} remote tables responded, ${failed} did not. Existing local records were preserved.`
-   : `Supabase synced ${ok} tables. Existing local records were preserved.`;
+   ? `Local data was preserved. ${ok} remote tables responded, ${failed} did not.`
+   : `Saved data preserved. Supabase checked ${ok} tables${pushed?` and restored ${pushed} local records to the server`:''}.`;
  updateSyncBanner();
  return {ok:failed===0,failed};
 }
@@ -672,6 +699,8 @@ function showMatchSetup(fid){const f=cache.fixtures.find(x=>x.id===fid),st=loadM
 function saveMatchSetup(fid){const st=loadMatchState(fid);if(!st)return;st.tossWinner=document.getElementById('setupToss')?.value||'';st.tossDecision=document.getElementById('setupDecision')?.value||'bat';st.umpires=document.getElementById('setupUmpires')?.value||'';st.scorer=document.getElementById('setupScorer')?.value||'';st.notes=document.getElementById('setupNotes')?.value||'';if(st.tossWinner&&st.tossDecision){st.battingTeam=st.tossDecision==='bat'?st.tossWinner:(st.tossWinner===cache.fixtures.find(x=>x.id===fid).team_a?cache.fixtures.find(x=>x.id===fid).team_b:cache.fixtures.find(x=>x.id===fid).team_a);st.bowlingTeam=st.battingTeam===cache.fixtures.find(x=>x.id===fid).team_a?cache.fixtures.find(x=>x.id===fid).team_b:cache.fixtures.find(x=>x.id===fid).team_a}saveMatchState(st);renderMatchCenter(fid)}
 
 window.addEventListener('load',async()=>{loadSaved();await loadData();renderTournaments();renderOnlyMatches();runGlobalSearch();fillSelect('teamTournament',cache.tournaments,'Create a tournament first');fillSelect('playerTeam',cache.teams,'Create a team first');fillSelect('fixtureTournament',cache.tournaments,'Create a tournament first');fillSelect('fixtureTeamA',cache.teams,'Create a team first');fillSelect('fixtureTeamB',cache.teams,'Create a team first');if(window.location.hash.startsWith('#match='))setTimeout(()=>openSharedMatch(),200)});
+
+/* V70 DATA SAFETY: local cache is authoritative during refresh; remote data never overwrites existing local records. */
 </script>
 </body>
 </html>
