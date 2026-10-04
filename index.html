@@ -636,32 +636,29 @@ function matchScoreDisplay(st){
 async function afterDelivery(fid,st,overComplete){
  const inn=currentInnings(st);
  const limitReached=inningsLimitReached(st);
- const targetReached=Number(st.maxInnings||2)===2 && st.innings===2 && st.target && inn.runs>=st.target;
+ const maxInnings=Number(st.maxInnings||2);
+ const targetReached=maxInnings===2 && st.innings===2 && Number(st.target||0)>0 && inn.runs>=Number(st.target);
  if(targetReached){
-   st.completed=true; st.started=false; st.inningsSetupPending=false; st.bowler='';
+   st.completed=true;st.started=false;st.inningsSetupPending=false;st.bowler='';
    st.resultText=`${teamName(st.battingTeam)} won by ${Math.max(1,playersForTeam(st.battingTeam).length-(inn.wickets||0))} wickets`;
-   saveMatchState(st); await persistMatchRow(fid,st); renderMatchCenter(fid);
-   setTimeout(()=>alert(`Target reached. ${teamName(st.battingTeam)} won.`),80);
-   return true;
+   syncStateSummary(st);saveMatchState(st);renderMatchCenter(fid);void persistMatchRow(fid,st);
+   setTimeout(()=>alert(`Target reached. ${teamName(st.battingTeam)} won.`),50);return true;
  }
  if(limitReached){
-   if(st.innings < Number(st.maxInnings||2)){
-     st.lastOverBowler=st.bowler; st.bowler=''; st.started=false; st.inningsSetupPending=true;
-     saveMatchState(st); await persistMatchRow(fid,st); renderMatchCenter(fid);
-     setTimeout(()=>{alert(`1st innings completed: ${st.oversLimit} overs finished.`);startNextInnings(fid)},80);
-   }else{
-     st.completed=true; st.bowler=''; st.started=false; st.inningsSetupPending=false;
-     st.resultText=`${teamName(st.battingTeam)} innings completed after ${st.oversLimit} overs`;
-     saveMatchState(st); await persistMatchRow(fid,st); renderMatchCenter(fid);
-     setTimeout(()=>alert(`2nd innings completed: ${st.oversLimit} overs finished. Match completed.`),80);
+   if(st.innings<maxInnings){
+     st.lastOverBowler=st.bowler;st.bowler='';st.started=false;st.inningsSetupPending=true;
+     syncStateSummary(st);saveMatchState(st);renderMatchCenter(fid);void persistMatchRow(fid,st);
+     setTimeout(()=>startNextInnings(fid),100);return true;
    }
-   return true;
+   st.completed=true;st.bowler='';st.started=false;st.inningsSetupPending=false;
+   st.resultText=`${teamName(st.battingTeam)} innings completed after ${st.oversLimit} overs`;
+   syncStateSummary(st);saveMatchState(st);renderMatchCenter(fid);void persistMatchRow(fid,st);
+   setTimeout(()=>alert(`${inningsLabel(st)} completed. Match completed.`),50);return true;
  }
  if(overComplete){
-   st.lastOverBowler=st.bowler; st.bowler='';
-   saveMatchState(st); renderMatchCenter(fid);
-   setTimeout(()=>openBowlerChangeModal(fid),80);
-   return true;
+   st.lastOverBowler=st.bowler;st.bowler='';st.started=false;
+   saveMatchState(st);renderMatchCenter(fid);void persistMatchRow(fid,st);
+   setTimeout(()=>openBowlerChangeModal(fid),50);return true;
  }
  return false;
 }
@@ -712,15 +709,22 @@ function canScore(st){if(st.completed)return 'Match is completed.';if(st.innings
 function inningsLimitReached(st){const inn=currentInnings(st);const maxBalls=Math.max(1,Number(st.oversLimit)||10)*Math.max(1,Number(st.ballsPerOver)||6);return inn.legalBalls>=maxBalls;}
 async function handleOverOrInningsEnd(fid,st,overComplete){if(!overComplete)return false;if(inningsLimitReached(st)){if(st.innings===1){st.lastOverBowler=st.bowler;st.bowler='';st.started=false;st.inningsSetupPending=true;saveMatchState(st);await persistMatchRow(fid,st);renderMatchCenter(fid);setTimeout(()=>{alert(`${inningsLabel(st)} completed: ${st.oversLimit} overs finished. Next innings will start now.`);startNextInnings(fid)},80);}else{st.completed=true;st.bowler='';st.started=false;st.result=`${st.oversLimit} overs completed`;saveMatchState(st);await persistMatchRow(fid,st);renderMatchCenter(fid);setTimeout(()=>alert(`2nd innings completed: ${st.oversLimit} overs finished. Match completed.`),80);}return true;}st.lastOverBowler=st.bowler;st.bowler='';saveMatchState(st);renderMatchCenter(fid);setTimeout(()=>openBowlerChangeModal(fid),80);return true;}
 async function recordRun(fid,runs){
- const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid)||defaultMatchState(f);if(!f)return;const err=canScore(st);if(err)return alert(err);
+ const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid)||defaultMatchState(f);if(!f)return;
+ const err=canScore(st);if(err)return alert(err);
  const inn=currentInnings(st),r=Math.max(0,Number(runs)||0),before=JSON.parse(JSON.stringify(st));
  const d={type:'run',runs:r,label:String(r),striker:st.striker,nonStriker:st.nonStriker,bowler:st.bowler,legal:true,createdAt:new Date().toISOString()};
  inn.runs+=r;inn.balls++;inn.legalBalls++;inn.deliveries.push(d);
- st.batterStats[st.striker]=(st.batterStats[st.striker]||{runs:0,balls:0,fours:0,sixes:0,out:false});const bs=st.batterStats[st.striker];bs.runs+=r;bs.balls++;if(r===4)bs.fours++;if(r===6)bs.sixes++;
- if(st.bowler){st.bowlerStats[st.bowler]=(st.bowlerStats[st.bowler]||{balls:0,runs:0,wickets:0});st.bowlerStats[st.bowler].balls++;st.bowlerStats[st.bowler].runs+=r}
+ st.batterStats[st.striker]=(st.batterStats[st.striker]||{runs:0,balls:0,fours:0,sixes:0,out:false});
+ const bs=st.batterStats[st.striker];bs.runs+=r;bs.balls++;if(r===4)bs.fours++;if(r===6)bs.sixes++;
+ if(st.bowler){const bw=st.bowlerStats[st.bowler]||(st.bowlerStats[st.bowler]={balls:0,runs:0,wickets:0});bw.balls++;bw.runs+=r}
  if(r%2===1)[st.striker,st.nonStriker]=[st.nonStriker,st.striker];
- const overComplete=inn.legalBalls%st.ballsPerOver===0;if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.lastOverBowler=st.bowler;st.bowler='';st.pendingBatterEnd=null;}
- st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);await persistDelivery(fid,d,st);await afterDelivery(fid,st,overComplete);if(!overComplete)renderMatchCenter(fid);
+ const overComplete=inn.legalBalls%st.ballsPerOver===0;
+ if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.lastOverBowler=st.bowler;st.bowler='';st.pendingBatterEnd=null;}
+ st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);
+ // Never block the score board on a cloud request.
+ void persistDelivery(fid,d,st);
+ renderMatchCenter(fid);
+ void afterDelivery(fid,st,overComplete);
 }
 function extraConfig(type){
  if(type==='wide')return {title:'Wide',base:1,legal:false,help:'Wide automatically adds 1 run. Then select any additional runs the batters ran.'};
@@ -743,27 +747,34 @@ async function confirmExtraModal(){const m=document.getElementById('extraModal')
 
 async function recordExtraManual(fid,type,selected,wicket=false,dismissal='run out',outBatter='striker'){
  const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid)||defaultMatchState(f);if(!f)return;
- if(st.completed)return alert('Match is completed.');
- if(st.inningsSetupPending)return alert('Please complete the innings setup first.');
- if(!st.striker||!st.nonStriker)return alert('Please select striker and non-striker first.');
- if(!st.bowler)return alert('Please select a bowler first.');
- const c=extraConfig(type),extraRuns=Math.max(0,Number(selected)||0),total=c.base+extraRuns,inn=currentInnings(st),before=JSON.parse(JSON.stringify(st));
- if(type==='penalty'&&total<=0)return alert('Select penalty runs.');
+ const err=canScore(st);if(err)return alert(err);
+ const c=extraConfig(type),extraRuns=Math.max(0,Number(selected)||0),total=c.base+extraRuns;
+ if(type==='penalty'&&extraRuns<=0)return alert('Select penalty runs.');
+ const inn=currentInnings(st),before=JSON.parse(JSON.stringify(st));
  const d={type,runs:total,extraRuns,label:type==='wide'?`Wd${total}`:type==='no-ball'?`Nb${total}`:type==='bye'?`B${total}`:type==='leg-bye'?`Lb${total}`:`P${total}`,striker:st.striker,nonStriker:st.nonStriker,bowler:st.bowler,legal:!!c.legal,createdAt:new Date().toISOString()};
- inn.runs+=total;
+ inn.runs+=total;inn.deliveries=inn.deliveries||[];
  if(c.legal){inn.balls++;inn.legalBalls++;}
- inn.deliveries=inn.deliveries||[];inn.deliveries.push(d);
- if(type==='no-ball'&&extraRuns>0&&st.striker){const bs=st.batterStats[st.striker]||(st.batterStats[st.striker]={runs:0,balls:0,fours:0,sixes:0,out:false});bs.runs+=extraRuns;if(extraRuns===4)bs.fours++;if(extraRuns===6)bs.sixes++;}
+ // Batter faced a legal ball for bye/leg-bye, but not for wide/no-ball/penalty.
  if(c.legal&&st.striker){const bs=st.batterStats[st.striker]||(st.batterStats[st.striker]={runs:0,balls:0,fours:0,sixes:0,out:false});bs.balls++;}
- if(st.bowler){const bw=st.bowlerStats[st.bowler]||(st.bowlerStats[st.bowler]={balls:0,runs:0,wickets:0});bw.runs+=total;if(c.legal)bw.balls++;}
- if(wicket){const out=outBatter==='nonStriker'?st.nonStriker:st.striker;if(out){inn.wickets++;d.wicket=true;d.dismissal=dismissal;const bs=st.batterStats[out]||(st.batterStats[out]={runs:0,balls:0,fours:0,sixes:0,out:false});bs.out=true;if(st.bowler&&!['run out','retired hurt','obstructing the field'].includes(dismissal))st.bowlerStats[st.bowler].wickets++;st.pendingBatterEnd=out==='striker'?'striker':'nonStriker';if(st.pendingBatterEnd==='striker')st.striker='';else st.nonStriker='';}}
- if(total%2===1&&st.striker&&st.nonStriker)[st.striker,st.nonStriker]=[st.nonStriker,st.striker];
+ // No-ball bat runs are credited to the striker, but the no-ball itself is not a ball faced.
+ if(type==='no-ball'&&extraRuns>0&&st.striker){const bs=st.batterStats[st.striker]||(st.batterStats[st.striker]={runs:0,balls:0,fours:0,sixes:0,out:false});bs.runs+=extraRuns;if(extraRuns===4)bs.fours++;if(extraRuns===6)bs.sixes++;}
+ // Bowler is charged with wides/no-balls and bat runs, but not byes/leg-byes/penalty runs.
+ if(st.bowler){const bw=st.bowlerStats[st.bowler]||(st.bowlerStats[st.bowler]={balls:0,runs:0,wickets:0});if(type!=='bye'&&type!=='leg-bye'&&type!=='penalty')bw.runs+=total;if(c.legal)bw.balls++;}
+ let outName='';
+ if(wicket){
+   outName=outBatter==='nonStriker'?st.nonStriker:st.striker;
+   if(outName){inn.wickets++;d.wicket=true;d.dismissal=dismissal;const bs=st.batterStats[outName]||(st.batterStats[outName]={runs:0,balls:0,fours:0,sixes:0,out:false});bs.out=true;if(st.bowler&&!['run out','retired hurt','obstructing the field'].includes(dismissal))st.bowlerStats[st.bowler].wickets++;st.pendingBatterEnd=outName==='striker'?'striker':'nonStriker';if(st.pendingBatterEnd==='striker')st.striker='';else st.nonStriker='';}
+ }
+ // Strike changes only for completed runs, not the automatic wide/no-ball/penalty run.
+ const crossingRuns=(type==='wide'||type==='no-ball')?extraRuns:(type==='bye'||type==='leg-bye')?extraRuns:0;
+ if(crossingRuns%2===1&&st.striker&&st.nonStriker)[st.striker,st.nonStriker]=[st.nonStriker,st.striker];
  const overComplete=!!c.legal&&inn.legalBalls%st.ballsPerOver===0;
  if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.lastOverBowler=st.bowler;st.bowler='';}
  st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);
- try{await persistDelivery(fid,d,st)}catch(e){console.warn(e)}
+ void persistDelivery(fid,d,st);
+ renderMatchCenter(fid);
  const ended=await afterDelivery(fid,st,overComplete);
- if(!ended){renderMatchCenter(fid);if(wicket&&st.pendingBatterEnd)setTimeout(()=>openNewBatterModal(fid),80)}
+ if(!ended&&wicket&&st.pendingBatterEnd)setTimeout(()=>openNewBatterModal(fid),50);
 }
 function openWicketModal(fid){
  document.getElementById('wicketModal')?.remove();const types=['bowled','caught','LBW','run out','stumped','hit wicket','retired hurt','obstructing the field'];
@@ -799,23 +810,28 @@ function swapStrike(fid){const st=loadMatchState(fid);if(!st||!st.striker||!st.n
 async function undoLastDelivery(fid){const st=loadMatchState(fid);if(!st||!st.history?.length)return alert('Nothing to undo.');try{const prev=JSON.parse(st.history[st.history.length-1]);prev.history=st.history.slice(0,-1);saveMatchState(prev);await loadData();renderMatchCenter(fid)}catch(e){alert('Undo failed: '+e.message)}}
 async function startNextInnings(fid){
  const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid)||defaultMatchState(f);if(!f)return;
- const maxInnings=Number(st.maxInnings||2);
- if(st.innings>=maxInnings)return alert('All innings are already completed.');
- const first=currentInnings(st),firstBat=st.battingTeam;
+ const maxInnings=Number(st.maxInnings||2);if(st.innings>=maxInnings)return alert('All innings are already completed.');
+ const previous=currentInnings(st),previousBat=st.battingTeam;
  st.innings=Number(st.innings||1)+1;
- // Alternate batting team each innings.
- st.battingTeam=firstBat===f.team_a?f.team_b:f.team_a;
- st.bowlingTeam=st.battingTeam===f.team_a?f.team_b:f.team_a;
- // For standard limited overs, innings 2 target is first innings + 1.
- // For later/test-style innings, keep the next innings open without forcing an incorrect target.
- st.target=(maxInnings===2 && st.innings===2)?first.runs+1:null;
- st.runs=0;st.wickets=0;st.balls=0;st.legalBalls=0;st.striker='';st.nonStriker='';st.bowler='';st.lastOverBowler='';st.started=false;st.inningsSetupPending=true;st.pendingBatterEnd=null;
- st.inningsData.push({runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]});
- saveMatchState(st);await persistMatchRow(fid,st);renderMatchCenter(fid);setTimeout(()=>openSecondInningsSetup(fid),80)
+ st.battingTeam=previousBat===f.team_a?f.team_b:f.team_a;st.bowlingTeam=st.battingTeam===f.team_a?f.team_b:f.team_a;
+ st.target=(maxInnings===2&&st.innings===2)?Number(previous.runs||0)+1:null;
+ st.runs=0;st.wickets=0;st.balls=0;st.legalBalls=0;st.over=0;st.ballInOver=0;st.striker='';st.nonStriker='';st.bowler='';st.lastOverBowler='';st.started=false;st.inningsSetupPending=true;st.pendingBatterEnd=null;
+ st.inningsData=st.inningsData||[];if(!st.inningsData[st.innings-1])st.inningsData.push({runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]});
+ syncStateSummary(st);saveMatchState(st);void persistMatchRow(fid,st);renderMatchCenter(fid);setTimeout(()=>openSecondInningsSetup(fid),80);
 }
-function openSecondInningsSetup(fid){document.getElementById('secondInningsModal')?.remove();const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid);if(!f||!st||st.innings!==2)return;const opts=activePlayersForTeam(st,st.battingTeam);const div=document.createElement('div');div.className='wicket-modal';div.id='secondInningsModal';div.innerHTML=`<div class="modal-card"><h3>🏏 Innings ${st.innings} — ${esc(teamName(st.battingTeam))}</h3><p class="small">The batting team has changed automatically. Select two different batters from ${esc(teamName(st.battingTeam))} and the new bowler.</p><label>Striker</label><select id="secondStriker">${playerOptionsForMatch(st,st.battingTeam,'')}</select><label>Non-striker</label><select id="secondNonStriker">${playerOptionsForMatch(st,st.battingTeam,'')}</select><label>Bowler — ${esc(teamName(st.bowlingTeam))}</label><select id="secondBowler">${playerOptionsForMatch(st,st.bowlingTeam,'')}</select>${matchPlayerSetupButton(fid,st.battingTeam,'＋ Add Batter')}${matchPlayerSetupButton(fid,st.bowlingTeam,'＋ Add Bowler')}<div class="modal-actions"><button type="button" class="primary" onclick="confirmSecondInnings('${esc(fid)}')">Start Innings</button></div></div>`;document.body.appendChild(div)}
-function confirmSecondInnings(fid){const m=document.getElementById('secondInningsModal'),st=loadMatchState(fid);if(!m||!st)return;const striker=document.getElementById('secondStriker')?.value||'',non=document.getElementById('secondNonStriker')?.value||'',bowler=document.getElementById('secondBowler')?.value||'';if(!striker||!non||!bowler)return alert('Please select striker, non-striker and bowler.');if(striker===non)return alert('Striker and non-striker must be different.');st.striker=striker;st.nonStriker=non;st.bowler=bowler;st.started=true;st.inningsSetupPending=false;saveMatchState(st);m.remove();renderMatchCenter(fid)}
-async function persistDelivery(fid,d,st){try{const x=await post('deliveries',{match_id:await ensureMatchRow(fid,st),ball_no:currentInnings(st).legalBalls,event_type:d.type+(d.dismissal?':'+d.dismissal:''),runs:Number(d.runs||0),striker:d.striker||null,non_striker:d.nonStriker||null,bowler:d.bowler||null});if(x){cache.deliveries.push(...(Array.isArray(x)?x:[x]));saveCache()}}catch(e){/* local state remains available */}try{await persistMatchRow(fid,st)}catch{}}
+function openSecondInningsSetup(fid){
+ document.getElementById('secondInningsModal')?.remove();const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid);if(!f||!st||st.innings<=1)return;
+ const div=document.createElement('div');div.className='wicket-modal';div.id='secondInningsModal';
+ div.innerHTML=`<div class="modal-card"><h3>🏏 ${esc(inningsLabel(st))} — ${esc(teamName(st.battingTeam))}</h3><p class="small">Select two different batters and a bowler. The score board will remain responsive while data is saved.</p><label>Striker</label><select id="secondStriker">${playerOptionsForMatch(st,st.battingTeam,'')}</select>${matchPlayerSetupButton(fid,st.battingTeam,'＋ Add Batter','striker')}<label>Non-striker</label><select id="secondNonStriker">${playerOptionsForMatch(st,st.battingTeam,'')}</select>${matchPlayerSetupButton(fid,st.battingTeam,'＋ Add Non-striker','nonStriker')}<label>Bowler — ${esc(teamName(st.bowlingTeam))}</label><select id="secondBowler">${playerOptionsForMatch(st,st.bowlingTeam,'')}</select>${matchPlayerSetupButton(fid,st.bowlingTeam,'＋ Add Bowler','bowler')}<div class="modal-actions"><button type="button" class="primary" onclick="confirmSecondInnings('${esc(fid)}')">Start ${esc(inningsLabel(st))}</button></div></div>`;
+ document.body.appendChild(div);
+}
+function confirmSecondInnings(fid){
+ const m=document.getElementById('secondInningsModal'),st=loadMatchState(fid);if(!m||!st)return;
+ const striker=document.getElementById('secondStriker')?.value||'',non=document.getElementById('secondNonStriker')?.value||'',bowler=document.getElementById('secondBowler')?.value||'';
+ if(!striker||!non||!bowler)return alert('Please select striker, non-striker and bowler.');if(striker===non)return alert('Striker and non-striker must be different.');
+ st.striker=striker;st.nonStriker=non;st.bowler=bowler;st.started=true;st.inningsSetupPending=false;syncStateSummary(st);saveMatchState(st);void persistMatchRow(fid,st);m.remove();renderMatchCenter(fid);
+}
+async function persistDelivery(fid,d,st){try{const x=await post('deliveries',{match_id:await ensureMatchRow(fid,st),ball_no:currentInnings(st).legalBalls,event_type:d.type+(d.dismissal?':'+d.dismissal:''),runs:Number(d.runs||0),striker:d.striker||null,non_striker:d.nonStriker||null,bowler:d.bowler||null});if(x){cache.deliveries.push(...(Array.isArray(x)?x:[x]));saveCache()}}catch(e){console.warn('Delivery cloud save deferred:',e?.message||e)}try{await persistMatchRow(fid,st)}catch(e){console.warn('Match cloud save deferred:',e?.message||e)}}
 async function ensureMatchRow(fid,st){let m=matchForFixture(fid);if(m)return m.id;try{const x=await post('matches',{fixture_id:fid,status:'in_progress',innings:st.innings,runs:st.runs,wickets:st.wickets,target:st.target,winner:st.winner||null});m=Array.isArray(x)?x[0]:x;if(m){cache.matches.push(m);durableSave();return m.id}}catch{}return 'local-'+fid}
 async function persistMatchRow(fid,st){let m=matchForFixture(fid);if(!m)return ensureMatchRow(fid,st);try{const c=cfg(),r=await timedFetch(c.url+'/rest/v1/rcs_matches?id=eq.'+encodeURIComponent(m.id),{method:'PATCH',headers:{apikey:c.key,'Content-Type':'application/json','Prefer':'return=representation'},body:JSON.stringify({status:st.completed?'completed':'in_progress',innings:st.innings,runs:st.runs,wickets:st.wickets,target:st.target,winner:st.winner||null})});const t=await r.text();if(r.ok){const arr=t?JSON.parse(t):[];if(arr[0]){Object.assign(m,arr[0]);saveCache()}}}catch{}}
 function matchReportText(fid){const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid);if(!f||!st)return '';const lines=[`${teamName(f.team_a)} vs ${teamName(f.team_b)}`,`Tournament: ${tournamentName(f.tournament_id)}`,`Venue: ${f.venue||'—'}`,`Score: ${st.runs}-${st.wickets} (${Math.floor(st.legalBalls/st.ballsPerOver)}.${st.legalBalls%st.ballsPerOver})`,`Result: ${st.resultText||'In progress'}`,'','Batting'];for(const [n,x] of Object.entries(st.batterStats||{}))lines.push(`${n},${x.runs},${x.balls},${x.fours},${x.sixes},${x.balls?(x.runs/x.balls*100).toFixed(1):'0.0'},${x.out?'OUT':'NOT OUT'}`);lines.push('','Bowling');for(const [n,x] of Object.entries(st.bowlerStats||{}))lines.push(`${n},${Math.floor(x.balls/6)}.${x.balls%6},${x.runs},${x.wickets}`);return lines.join('\n')}
