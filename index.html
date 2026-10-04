@@ -75,20 +75,20 @@ async function previewPhoto(inputId,previewId){const f=document.getElementById(i
 const legacy=['ROBIN_CUT_SCORER_V42','ROBIN_CUT_SCORER_V40','ROBIN_CUT_SCORER_V39','ROBIN_CUT_SCORER_V38','ROBIN_CUT_SCORER_V37','ROBIN_CUT_SCORER_V36','ROBIN_CUT_SCORER_V35','ROBIN_CUT_SCORER_V34'];
 function esc(s){return String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
 function stored(k){try{return JSON.parse(localStorage.getItem(k)||'{}')}catch{return {}}}
-function cfg(){let c=stored(LS);if(c.key){const u=(c.url||VERIFIED_URL).replace(/\/$/,'');const fixed=(u==='https://oszjutmbgnllxjicljob.supabase.co'||u==='https://oszjutmbgnllxjicljob.supabase.co')?VERIFIED_URL:u;const out={url:fixed,key:c.key};try{localStorage.setItem(LS,JSON.stringify(out))}catch{};return out}for(const k of legacy){c=stored(k);if(c.key){const u=(c.url||VERIFIED_URL).replace(/\/$/,'');const fixed=(u==='https://oszjutmbgnllxjicljob.supabase.co'||u==='https://oszjutmbgnllxjicljob.supabase.co')?VERIFIED_URL:u;c={...c,url:fixed};try{localStorage.setItem(LS,JSON.stringify(c))}catch{};return c}}return {url:VERIFIED_URL,key:DEFAULT_KEY}}
+function cfg(){const out={url:VERIFIED_URL,key:DEFAULT_KEY};try{localStorage.setItem(LS,JSON.stringify(out))}catch{};return out}
 function setStatus(id,msg,type='info'){const e=document.getElementById(id);if(e)e.className='status '+type,e.innerHTML=msg}
 async function timedFetch(url,opt={},timeout=15000){const c=new AbortController(),t=setTimeout(()=>c.abort(),timeout);try{return await fetch(url,{...opt,mode:'cors',cache:'no-store',signal:c.signal})}catch(e){if(e.name==='AbortError')throw Error('Request timed out after 15 seconds. Check your internet connection and Supabase project status.');throw e}finally{clearTimeout(t)}}
 function friendlyError(e){const m=String(e?.message||e||'Unknown error');if(/Failed to fetch|Load failed|NetworkError|network/i.test(m))return 'Browser could not reach Supabase. This is usually a network, CORS, DNS, or paused-project issue.';return m}
 const TABLES={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures',matches:'rcs_matches',deliveries:'rcs_deliveries'};
 function dbTable(table){return TABLES[table]||table}
-async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&limit=1000';const r=await timedFetch(u,{headers:{apikey:c.key,Accept:'application/json'}});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
-async function post(table,payload){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
+async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&limit=1000';const r=await timedFetch(u,{headers:{apikey:c.key,Authorization:'Bearer '+c.key,Accept:'application/json','Accept-Profile':'public'}});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
+async function post(table,payload){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json','Accept-Profile':'public',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
 
 async function upsertStable(table,row){
   const c=cfg();
   if(!c.key)throw Error('No Supabase publishable key');
   const copy={...row}; delete copy.__localOnly;
-  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify(copy)});
+  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json','Accept-Profile':'public',Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify(copy)});
   const t=await r.text();
   if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));
   return t?JSON.parse(t):[];
@@ -182,7 +182,7 @@ function loadCache(){for(const k of ['tournaments','teams','players','fixtures',
 async function del(table,filters){
   const c=cfg(); if(!c.key)throw Error('No Supabase publishable key');
   const qs=Object.entries(filters).map(([k,v])=>encodeURIComponent(k)+'=eq.'+encodeURIComponent(v)).join('&');
-  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?'+qs,{method:'DELETE',headers:{apikey:c.key,Prefer:'return=minimal'}});
+  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?'+qs,{method:'DELETE',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Accept-Profile':'public',Prefer:'return=minimal'}});
   const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500)); return true;
 }
 function removePhoto(id){try{const o=photoStore();delete o[id];localStorage.setItem(PHOTO_KEY,JSON.stringify(o))}catch{}}
@@ -190,7 +190,7 @@ function cleanupTournamentLocal(id){try{const pm=photoStore();delete pm[id];loca
 function cleanupTeamLocal(teamId){try{const pm=photoStore();delete pm[teamId];cache.players.filter(p=>p.team_id===teamId).forEach(p=>delete pm[p.id]);localStorage.setItem(PHOTO_KEY,JSON.stringify(pm))}catch{}}
 async function patchRow(table,id,payload){
   const c=cfg(); if(!c.key)throw Error('No Supabase publishable key');
-  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{apikey:c.key,'Content-Type':'application/json',Prefer:'return=representation'},body:JSON.stringify(payload)});
+  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json','Accept-Profile':'public',Prefer:'return=representation'},body:JSON.stringify(payload)});
   const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500)); return t?JSON.parse(t):[];
 }
 function openEditTournament(id){
@@ -424,6 +424,7 @@ function playersOf(teamId){return cache.players.filter(x=>x.team_id===teamId)}
 function saveFixtureMeta(id,data){if(!id)return;try{const o=JSON.parse(localStorage.getItem('RCS41_fixture_meta')||'{}');o[id]={...(o[id]||{}),...data};localStorage.setItem('RCS41_fixture_meta',JSON.stringify(o))}catch{}}
 function getFixtureMeta(id){try{return JSON.parse(localStorage.getItem('RCS41_fixture_meta')||'{}')[id]||{}}catch{return {}}}
 function fixtureTimeOf(f){return f?.match_time||getFixtureMeta(f?.id).match_time||''}
+function cloudReadMessage(){return 'Cloud database connection is fixed to the verified Supabase project.'}
 function renderTournaments(){
   const l=document.getElementById('tList'); if(!l)return;
   l.innerHTML=cache.tournaments.map(t=>tCard(t)).join('')||'<div class="status info">No tournaments found.</div>';
@@ -481,7 +482,7 @@ async function confirmStandaloneTeam(){
 }
 async function syncPlayersForTeam(teamId){
   if(!teamId)return;
-  try{const c=cfg();const r=await timedFetch(c.url+'/rest/v1/rcs_players?team_id=eq.'+encodeURIComponent(teamId)+'&select=*',{headers:{apikey:c.key,Accept:'application/json'}});const t=await r.text();if(!r.ok)return;const arr=t?JSON.parse(t):[];for(const p of arr){const i=cache.players.findIndex(x=>x.id===p.id);if(i>=0)cache.players[i]={...cache.players[i],...p};else cache.players.push(p)}saveCache()}catch{}
+  try{const c=cfg();const r=await timedFetch(c.url+'/rest/v1/rcs_players?team_id=eq.'+encodeURIComponent(teamId)+'&select=*',{headers:{apikey:c.key,Authorization:'Bearer '+c.key,Accept:'application/json','Accept-Profile':'public'}});const t=await r.text();if(!r.ok)return;const arr=t?JSON.parse(t):[];for(const p of arr){const i=cache.players.findIndex(x=>x.id===p.id);if(i>=0)cache.players[i]={...cache.players[i],...p};else cache.players.push(p)}saveCache()}catch{}
 }
 async function createOnlyMatch(){
   const type=document.getElementById('onlyMatchType')?.value||'Single Match', teamA=document.getElementById('onlyTeamA')?.value, teamB=document.getElementById('onlyTeamB')?.value, venue=document.getElementById('onlyVenue')?.value.trim()||null, time=document.getElementById('onlyTime')?.value||null, overs=Math.max(1,Number(document.getElementById('onlyOvers')?.value)||10), ballsPerOver=Math.max(1,Number(document.getElementById('onlyBallsPerOver')?.value)||6);
