@@ -81,7 +81,7 @@ async function timedFetch(url,opt={},timeout=15000){const c=new AbortController(
 function friendlyError(e){const m=String(e?.message||e||'Unknown error');if(/Failed to fetch|Load failed|NetworkError|network/i.test(m))return 'Browser could not reach Supabase. This is usually a network, CORS, DNS, or paused-project issue.';return m}
 const TABLES={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures',matches:'rcs_matches',deliveries:'rcs_deliveries'};
 function dbTable(table){return TABLES[table]||table}
-async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&limit=1000&apikey='+encodeURIComponent(c.key);const r=await timedFetch(u,{headers:{Accept:'application/json'}},15000);const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
+async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&limit=1000&apikey='+encodeURIComponent(c.key);const r=await timedFetch(u,{headers:{Accept:'application/json',Authorization:'Bearer '+c.key,'apikey':c.key,'Accept-Profile':'public'}},15000);const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
 async function post(table,payload){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json','Accept-Profile':'public',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
 
 async function upsertStable(table,row){
@@ -1005,6 +1005,8 @@ setInterval(retryCloudSync,30000);
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible')setTimeout(()=>retryCloudSync(),300);
 });
+window.addEventListener('pageshow',()=>{setTimeout(()=>retryCloudSync(),500);});
+window.addEventListener('online',()=>{setTimeout(()=>retryCloudSync(),500);});
 </script>
 </body>
 </html>
