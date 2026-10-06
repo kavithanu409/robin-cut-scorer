@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V80 OVER FLOW FIX</title>
+<title>ROBIN CUT SCORER V81 AUTO SYNC AND OVER TRANSITION FIX</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;background:#fff;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}body{min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}header{background:#111827;color:#fff;padding:18px 20px 16px;position:sticky;top:0;z-index:20}header h1{margin:0;font-size:28px;letter-spacing:.2px}header p{margin:4px 0 0;color:#cbd5e1;font-size:15px}nav{display:flex;gap:8px;overflow:auto;padding:12px 14px;background:#fff;border-bottom:1px solid #eee;position:sticky;top:80px;z-index:19}nav button{flex:0 0 auto;border:1px solid #d7d7d7;background:#fff;color:#666;border-radius:18px;padding:10px 16px;font-weight:700;font-size:14px}nav button.active{background:#159b8d;color:#fff;border-color:#159b8d}main{max-width:900px;margin:0 auto;padding:14px 14px 60px}.card{background:#fff;border-radius:18px;margin:12px 0;padding:18px;box-shadow:0 1px 0 #eee;border:1px solid #eee}.searchbox{display:flex;align-items:center;background:#e9e9eb;border-radius:28px;padding:0 16px;margin:10px 0 12px}.searchbox input{border:0;background:transparent;outline:0;width:100%;padding:14px 8px;font-size:17px}.searchicon{font-size:24px;color:#777}.chips{display:flex;gap:8px;overflow:auto;padding:2px 0 10px}.chip{border:1.5px solid #777;background:#fff;border-radius:15px;padding:8px 15px;font-weight:700;color:#666;white-space:nowrap}.chip.active{background:#159b8d;color:#fff;border-color:#159b8d}.result{display:flex;gap:14px;align-items:center;background:#f7f7f7;border-radius:22px;padding:8px;margin:10px 0;box-shadow:0 1px 5px #00000012}.result .thumb{width:86px;height:86px;border-radius:18px;background:linear-gradient(145deg,#0e5a43,#e0a72f);display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;flex:0 0 86px;text-align:center}.result h3{margin:0 0 5px;font-size:18px}.result p{margin:3px 0;color:#777;font-size:14px}.result button{border:0;background:transparent;text-align:left;padding:0}.tour-hero{border-radius:0 0 18px 18px;overflow:hidden;margin:-14px -14px 0;background:#f4f4f4}.tour-cover{height:230px;background:linear-gradient(135deg,#0c3f35,#159b8d 45%,#d89a26);display:grid;place-items:center;color:#fff;font-size:30px;font-weight:900;text-align:center;padding:30px}.tour-head{padding:16px 10px}.tour-head h2{margin:0;font-size:24px;line-height:1.2}.tour-meta{color:#777;margin-top:7px;line-height:1.45}.tour-actions{display:flex;gap:10px;float:right;margin-top:-50px}.circlebtn{width:42px;height:42px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:20px}.tour-tabs{display:flex;gap:28px;overflow:auto;border-top:1px solid #eee;border-bottom:1px solid #eee;padding:13px 4px}.tour-tabs button{border:0;background:none;color:#777;font-weight:700;font-size:13px;white-space:nowrap;padding:4px 0}.tour-tabs button.active{color:#159b8d;border-bottom:2px solid #159b8d}.winner-row{display:flex;justify-content:center;gap:55px;align-items:flex-end;padding:22px 5px;border-bottom:1px solid #eee}.team-badge{width:76px;height:76px;border-radius:50%;border:5px solid #fff;box-shadow:0 1px 7px #0002;background:linear-gradient(135deg,#263d8d,#d94d67);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:900;text-align:center}.winner-col{text-align:center}.winner-col small{display:block;color:#777;font-weight:800;margin-bottom:6px}.winner-col b{display:block;margin-top:9px;font-size:14px;max-width:120px}.section-title{font-size:18px;font-weight:800;color:#777;margin:18px 0 8px}.topstats{display:grid;grid-template-columns:1fr 1fr;gap:18px;text-align:center;padding:10px 0 18px;border-bottom:1px solid #eee}.bigstat{font-size:40px;font-weight:900}.bigstat-label{color:#777;font-size:14px}.listcard{border:1px solid #e6e6e6;border-radius:16px;padding:14px;margin:9px 0;background:#fff}.listcard h3{margin:0 0 5px}.muted{color:#777;font-size:13px}.tablewrap{overflow:auto}.ptable{width:100%;border-collapse:collapse;min-width:620px}.ptable th,.ptable td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left}.ptable th{color:#777;font-size:12px}.status{padding:12px 14px;border-radius:12px;margin:10px 0}.ok{background:#eaf8ef;color:#176534}.err{background:#fff0f0;color:#a52626}.info{background:#eef7f6;color:#146b63}.warn{background:#fff7df;color:#805d00}label{display:block;font-weight:800;margin:14px 0 7px}input,select{width:100%;padding:13px;border:1px solid #d9d9d9;border-radius:12px;background:#fff}.primary{border:0;border-radius:12px;background:#159b8d;color:#fff;padding:12px 16px;font-weight:800;margin-top:12px}.secondary{border:0;border-radius:12px;background:#eef7f6;color:#147d72;padding:12px 16px;font-weight:800;margin-top:12px}.row{display:flex;gap:9px;flex-wrap:wrap}.hidden{display:none}.small{font-size:13px;color:#777;line-height:1.45}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef7f6;color:#147d72;font-size:12px;font-weight:800;margin:3px}.diag{border:1px solid #e7e7e7;border-radius:13px;margin-top:9px;padding:12px}.diag b{display:block;margin-bottom:4px}.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-word}.squad-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.player-card{border:1px solid #eee;border-radius:14px;padding:11px}.player-avatar{width:42px;height:42px;border-radius:50%;background:#eee;display:grid;place-items:center;margin-bottom:7px}.match-card{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #eee;padding:14px 0}.match-card:last-child{border-bottom:0}.scorepill{font-weight:800;color:#159b8d}.backbtn{border:0;background:none;font-size:28px;padding:4px 0;color:#111}.photo-input{padding:10px;background:#fafafa}.photo-preview{width:92px;height:92px;border-radius:16px;object-fit:cover;border:1px solid #ddd;margin-top:8px;background:#f1f1f1}.avatar-img{width:42px;height:42px;border-radius:50%;object-fit:cover}.thumb-img{width:86px;height:86px;border-radius:18px;object-fit:cover}.team-thumb{width:54px;height:54px;border-radius:14px;object-fit:cover;vertical-align:middle;margin-right:9px}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.file-note{font-size:12px;color:#777;margin-top:5px}.entity-hero{padding:4px 0 14px}.entity-head{display:flex;gap:14px;align-items:center}.entity-logo{width:84px;height:84px;border-radius:20px;object-fit:cover;background:#eef7f6;display:grid;place-items:center;font-size:34px;flex:0 0 84px}.entity-logo img{width:100%;height:100%;border-radius:20px;object-fit:cover}.entity-title h2{margin:0 0 5px}.entity-title p{margin:0;color:#777}.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}.stat-box{border:1px solid #eee;border-radius:15px;padding:13px;text-align:center}.stat-box b{display:block;font-size:24px}.stat-box span{color:#777;font-size:12px}.clicklink{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;font-weight:800}.clicklink:hover{color:#159b8d}.mini-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:7px}.detail-section{margin-top:18px}.detail-section h3{margin:0 0 8px}.empty-note{padding:12px;border-radius:12px;background:#f7f7f7;color:#777}.fixture-team-link{border:0;background:none;padding:0;font:inherit;font-weight:800;color:#171717}.fixture-team-link:hover{color:#159b8d}
 
@@ -38,7 +38,7 @@
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V80</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V81</p></header>
 <nav class="mainnav"><button type="button" class="active" onclick="show('explore',this)">Explore</button><button type="button" onclick="show('tournaments',this)">Tournaments</button><button type="button" onclick="show('teams',this)">Teams</button><button type="button" onclick="show('players',this)">Players</button><button type="button" onclick="show('fixtures',this)">Fixtures</button><button type="button" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -681,7 +681,7 @@ async function afterDelivery(fid,st,overComplete){
   // Normal over completion. The important fix is that the completed bowler is
   // captured BEFORE clearing the live bowler, then the next-over modal is opened.
   if(overComplete){
-    const completedBowler=st.lastOverBowler || st.bowler || '';
+    const completedBowler=st.bowler || st.lastOverBowler || '';
     st.lastOverBowler=completedBowler;
     st.bowler='';
     st.started=false;
@@ -798,7 +798,7 @@ async function recordRun(fid,runs){
  if(st.bowler){const bw=st.bowlerStats[st.bowler]||(st.bowlerStats[st.bowler]={balls:0,runs:0,wickets:0});bw.balls++;bw.runs+=r}
  if(r%2===1)[st.striker,st.nonStriker]=[st.nonStriker,st.striker];
  const overComplete=inn.legalBalls%st.ballsPerOver===0;
- if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.lastOverBowler=st.bowler;st.bowler='';st.pendingBatterEnd=null;}
+ if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.pendingBatterEnd=null;}
  st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);
  // Never block the score board on cloud/network requests.
  renderMatchCenter(fid);
@@ -850,7 +850,7 @@ async function recordExtraManual(fid,type,selected,wicket=false,dismissal='run o
  const crossingRuns=(type==='wide'||type==='no-ball')?extraRuns:(type==='bye'||type==='leg-bye')?extraRuns:0;
  if(crossingRuns%2===1&&st.striker&&st.nonStriker)[st.striker,st.nonStriker]=[st.nonStriker,st.striker];
  const overComplete=!!c.legal&&inn.legalBalls%st.ballsPerOver===0;
- if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.lastOverBowler=st.bowler;}
+ if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];}
  st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);
  void persistDelivery(fid,d,st);
  renderMatchCenter(fid);
@@ -873,7 +873,7 @@ async function recordWicketManual(fid,type,runs,outBatter='striker'){
  inn.runs+=r;inn.balls++;inn.legalBalls++;inn.wickets++;inn.deliveries.push(d);st.batterStats[out]=(st.batterStats[out]||{runs:0,balls:0,fours:0,sixes:0,out:false});st.batterStats[out].out=true;
  if(st.bowler){st.bowlerStats[st.bowler]=(st.bowlerStats[st.bowler]||{balls:0,runs:0,wickets:0});st.bowlerStats[st.bowler].balls++;st.bowlerStats[st.bowler].runs+=r;if(!['run out','retired hurt','obstructing the field'].includes(type))st.bowlerStats[st.bowler].wickets++}
  const overComplete=inn.legalBalls%st.ballsPerOver===0;st.pendingBatterEnd=out==='striker'?(overComplete?'nonStriker':'striker'):(overComplete?'striker':'nonStriker');if(st.pendingBatterEnd==='striker')st.striker='';else st.nonStriker='';
- if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];st.lastOverBowler=st.bowler;st.bowler=''}st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);await persistDelivery(fid,d,st);
+ if(overComplete){[st.striker,st.nonStriker]=[st.nonStriker,st.striker];}st.started=true;st.history=st.history||[];st.history.push(JSON.stringify(before));syncStateSummary(st);saveMatchState(st);await persistDelivery(fid,d,st);
 const ended=await afterDelivery(fid,st,overComplete);
 if(!ended){renderMatchCenter(fid);setTimeout(()=>openNewBatterModal(fid),80)}
 }
@@ -891,12 +891,8 @@ function confirmBowlerChange(fid){
  const b=document.getElementById('nextBowlerSelect')?.value||'';
  if(!b)return alert('Please select the new bowler.');
  if(b===st.lastOverBowler)return alert('Same bowler cannot bowl consecutive overs.');
- st.bowler=b;
- st.started=!!(st.striker&&st.nonStriker&&st.bowler);
- saveMatchState(st);
- m.remove();
- // V80: render only after the new bowler is committed to match state.
- renderMatchCenter(fid);
+ st.bowler=b;st.started=!!(st.striker&&st.nonStriker&&st.bowler);st.inningsSetupPending=false;
+ saveMatchState(st);m.remove();renderMatchCenter(fid);void persistMatchRow(fid,st);
 }
 
 function swapStrike(fid){const st=loadMatchState(fid);if(!st||!st.striker||!st.nonStriker)return;[st.striker,st.nonStriker]=[st.nonStriker,st.striker];saveMatchState(st);renderMatchCenter(fid)}
@@ -981,55 +977,33 @@ let __rcsBootPromise=null;
 */
 async function autoCloudLoad(){
   loadSaved();
-
-  // Show the local safety copy immediately.
-  try{
-    await recoverLocalSnapshots();
-  }catch(e){
-    console.warn('Local snapshot recovery failed:',e);
-  }
-
+  try{await recoverLocalSnapshots()}catch(e){console.warn('Local snapshot recovery failed:',e)}
   renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();
 
   const c=cfg();
-  if(!c.key){
-    lastSyncOk=false;
-    lastSyncMessage='No saved Supabase connection. Local saved data is kept.';
-    updateSyncBanner();
-    return {ok:false,reason:lastSyncMessage};
-  }
+  if(!c.key){lastSyncOk=false;lastSyncMessage='No saved Supabase connection. Local saved data is kept.';updateSyncBanner();return {ok:false,reason:lastSyncMessage};}
 
-  lastSyncOk=null;
-  lastSyncMessage='Loading your permanent cloud data…';
-  updateSyncBanner();
+  // V81: run the same complete connection-and-sync routine that previously
+  // had to be tapped manually before cloud records appeared after refresh.
+  const urlInput=document.getElementById('url'),keyInput=document.getElementById('key');
+  if(urlInput)urlInput.value=c.url;
+  if(keyInput)keyInput.value=c.key;
+  lastSyncOk=null;lastSyncMessage='Loading saved tournaments, teams, players and matches…';updateSyncBanner();
 
-  // Warm up Supabase before the full table load.
-  const warmup=async()=>{
-    const api=c.url+'/rest/v1/rcs_tournaments?select=id&limit=1&apikey='+encodeURIComponent(c.key);
-    const r=await timedFetch(api,{headers:{Accept:'application/json'}},10000);
-    const body=await r.text();
-    if(!r.ok)throw Error('HTTP '+r.status+': '+body.slice(0,300));
-  };
-
-  // Retry startup because Safari/iOS can briefly delay the first network request.
   let lastError=null;
-  for(const delay of [0,800,2000,4000]){
+  for(const delay of [0,1000,2500,5000,9000]){
     if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
     try{
-      await warmup();
-      const result=await loadData();
-      renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();
-      return result;
-    }catch(e){
-      lastError=e;
-      console.warn('Startup cloud load attempt failed:',e);
-    }
+      await runDiagnostics();
+      if(lastSyncOk===true){
+        renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();
+        return {ok:true,failed:0,pushed:0};
+      }
+      lastError=new Error(lastSyncMessage||'Full connection test did not finish syncing.');
+    }catch(e){lastError=e;console.warn('Automatic full connection test failed:',e);}
   }
-
-  lastSyncOk=false;
-  lastSyncMessage='Cloud is temporarily unavailable. Your saved data was kept on this device and will retry automatically.';
-  updateSyncBanner();
-  console.warn('Automatic cloud load failed after retries:',lastError);
+  lastSyncOk=false;lastSyncMessage='Automatic cloud load did not complete. Your local saved data was kept; cloud sync will retry.';
+  updateSyncBanner();console.warn('Automatic cloud load failed after retries:',lastError);
   return {ok:false,reason:lastError?.message||'Cloud unavailable'};
 }
 
