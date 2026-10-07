@@ -615,6 +615,7 @@ function loadMatchState(fid){
   }catch{return null}
 }
 function saveMatchState(st){
+  if(st.history?.length>30)st.history=st.history.slice(-30);
   try{
     localStorage.setItem(matchStateKey(st.fixtureId),JSON.stringify(st));
     const key='RCS_MATCH_STATES_V73';
@@ -625,7 +626,7 @@ function saveMatchState(st){
 function defaultMatchState(f){const t=cache.tournaments.find(x=>x.id===f.tournament_id),meta=f.tournament_id?getTourMeta(f.tournament_id):standaloneMeta(f.id),format=String(t?.format||'').toLowerCase(),maxInnings=format==='test'?4:2;return {fixtureId:f.id,maxInnings,innings:1,battingTeam:f.team_a,bowlingTeam:f.team_b,runs:0,wickets:0,balls:0,over:0,ballInOver:0,legalBalls:0,oversLimit:Number(t?.overs||meta?.overs||10),ballsPerOver:Number(meta?.ballsPerOver||6),target:null,striker:'',nonStriker:'',bowler:'',lastOverBowler:'',started:false,inningsSetupPending:false,completed:false,tossWinner:'',tossDecision:'',umpires:'',scorer:'',notes:'',history:[],inningsData:[{runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]}],batterStats:{},bowlerStats:{}}}
 function getMatchState(f){return loadMatchState(f.id)||defaultMatchState(f)}
 function playersForTeam(teamId){return cache.players.filter(p=>p.team_id===teamId)}
-function initMatchState(f){let st=getMatchState(f);if(!st.history)st.history=[];if(!st.inningsData||!st.inningsData.length)st.inningsData=[{runs:st.runs||0,wickets:st.wickets||0,balls:st.balls||0,legalBalls:st.legalBalls||0,deliveries:[]}];if(!st.batterStats)st.batterStats={};if(!st.bowlerStats)st.bowlerStats={};saveMatchState(st);return st}
+function initMatchState(f){let st=getMatchState(f);if(!st.history)st.history=[];st.history=st.history.map(h=>{try{return h.includes('"history"')?JSON.stringify(snapshotOf(JSON.parse(h))):h}catch{return h}});if(!st.inningsData||!st.inningsData.length)st.inningsData=[{runs:st.runs||0,wickets:st.wickets||0,balls:st.balls||0,legalBalls:st.legalBalls||0,deliveries:[]}];if(!st.batterStats)st.batterStats={};if(!st.bowlerStats)st.bowlerStats={};saveMatchState(st);return st}
 function currentInnings(st){if(!st.inningsData[st.innings-1])st.inningsData[st.innings-1]={runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]};return st.inningsData[st.innings-1]}
 function syncStateSummary(st){const inn=currentInnings(st);st.runs=inn.runs;st.wickets=inn.wickets;st.balls=inn.balls;st.legalBalls=inn.legalBalls;st.over=Math.floor(inn.legalBalls/st.ballsPerOver);st.ballInOver=inn.legalBalls%st.ballsPerOver}
 function inningsLabel(st){const n=Number(st.innings||1);return `${n}${n===1?'st':n===2?'nd':n===3?'rd':'th'} Innings`}
@@ -693,7 +694,8 @@ async function afterDelivery(fid,st,overComplete){
 
   return false;
 }
-async function openMatch(fid){const f=cache.fixtures.find(x=>x.id===fid);if(!f)return;currentTournament=f.tournament_id;document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('matchCenter').classList.remove('hidden');document.body.classList.add('in-tournament');await syncPlayersForTeam(f.team_a);await syncPlayersForTeam(f.team_b);renderMatchCenter(fid)}
+async function openMatch(fid){const f=cache.fixtures.find(x=>x.id===fid);if(!f)return;currentTournament=f.tournament_id;document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('matchCenter').classList.remove('hidden');document.body.classList.add('in-tournament');await syncPlayersForTeam(f.team_a);await syncPlayersForTeam(f.team_b);renderMatchCenter(fid);resumeMatchPrompt(fid)}
+function resumeMatchPrompt(fid){const st=loadMatchState(fid);if(!st||st.completed||document.querySelector('.wicket-modal'))return;if(st.inningsSetupPending)return inningsLimitReached(st)&&st.innings<Number(st.maxInnings||2)?startNextInnings(fid):openSecondInningsSetup(fid);const lb=currentInnings(st).legalBalls;if(!st.bowler&&st.lastOverBowler&&lb>0&&lb%st.ballsPerOver===0)openBowlerChangeModal(fid)}
 function activePlayersForTeam(st,teamId,mode='batting'){
   const players=playersForTeam(teamId);
   // A player dismissed while batting is unavailable as a batter, but can still bowl.
@@ -762,6 +764,7 @@ function setMatchPlayerSlot(fid,slot){
    st.bowler=value;
  }
  st.started=!!(st.striker&&st.nonStriker&&st.bowler);
+ if(st.started)st.inningsSetupPending=false;
  saveMatchState(st);void persistMatchRow(fid,st);
  // Do not rebuild the whole score board on iPhone/Safari select changes.
  // The selected DOM values are authoritative until the next scoring action.
@@ -779,7 +782,8 @@ function setMatchPlayers(fid){
 }
 async function changeBattingTeam(fid){const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid);if(!f||!st)return;st.battingTeam=document.getElementById('mcBatTeam').value;st.bowlingTeam=st.battingTeam===f.team_a?f.team_b:f.team_a;st.striker='';st.nonStriker='';st.bowler='';saveMatchState(st);await syncPlayersForTeam(st.battingTeam);await syncPlayersForTeam(st.bowlingTeam);renderMatchCenter(fid)}
 function ensureStarted(st){st.started=true;return st}
-function addHistory(st){st.history=st.history||[];st.history.push(JSON.stringify(st));if(st.history.length>100)st.history.shift()}
+function snapshotOf(st){const {history,...rest}=st;return JSON.parse(JSON.stringify(rest))}
+function addHistory(st){st.history=st.history||[];st.history.push(JSON.stringify(snapshotOf(st)));if(st.history.length>100)st.history.shift()}
 function canScore(st){if(st.completed)return 'Match is completed.';if(st.inningsSetupPending)return 'Please complete the innings setup first.';if(!st.striker||!st.nonStriker)return 'Please select striker and non-striker.';if(!st.bowler)return 'Please select a bowler.';if(st.bowler===st.lastOverBowler)return 'Please select a different bowler for this over.';return ''}
 function inningsLimitReached(st){const inn=currentInnings(st);const maxBalls=Math.max(1,Number(st.oversLimit)||10)*Math.max(1,Number(st.ballsPerOver)||6);return inn.legalBalls>=maxBalls;}
 async function handleOverOrInningsEnd(fid,st,overComplete){if(!overComplete)return false;if(inningsLimitReached(st)){if(st.innings===1){st.lastOverBowler=st.bowler;st.bowler='';st.started=false;st.inningsSetupPending=true;saveMatchState(st);await persistMatchRow(fid,st);renderMatchCenter(fid);setTimeout(()=>{alert(`${inningsLabel(st)} completed: ${st.oversLimit} overs finished. Next innings will start now.`);startNextInnings(fid)},80);}else{st.completed=true;st.bowler='';st.started=false;st.result=`${st.oversLimit} overs completed`;saveMatchState(st);await persistMatchRow(fid,st);renderMatchCenter(fid);setTimeout(()=>alert(`2nd innings completed: ${st.oversLimit} overs finished. Match completed.`),80);}return true;}st.lastOverBowler=st.bowler;st.bowler='';saveMatchState(st);renderMatchCenter(fid);setTimeout(()=>openBowlerChangeModal(fid),80);return true;}
@@ -789,7 +793,7 @@ async function recordRun(fid,runs){
  // iOS/Safari can briefly rebuild those controls after an over; reading them here
  // was able to turn a valid next-over selection into an empty selection and make scoring look stuck.
  const err=canScore(st);if(err)return alert(err);
- const inn=currentInnings(st),r=Math.max(0,Number(runs)||0),before=JSON.parse(JSON.stringify(st));
+ const inn=currentInnings(st),r=Math.max(0,Number(runs)||0),before=snapshotOf(st);
  const d={type:'run',runs:r,label:String(r),striker:st.striker,nonStriker:st.nonStriker,bowler:st.bowler,legal:true,createdAt:new Date().toISOString()};
  inn.runs+=r;inn.balls++;inn.legalBalls++;inn.deliveries.push(d);
  st.batterStats[st.striker]=(st.batterStats[st.striker]||{runs:0,balls:0,fours:0,sixes:0,out:false});
@@ -830,7 +834,7 @@ async function recordExtraManual(fid,type,selected,wicket=false,dismissal='run o
  const err=canScore(st);if(err)return alert(err);
  const c=extraConfig(type),extraRuns=Math.max(0,Number(selected)||0),total=c.base+extraRuns;
  if(type==='penalty'&&extraRuns<=0)return alert('Select penalty runs.');
- const inn=currentInnings(st),before=JSON.parse(JSON.stringify(st));
+ const inn=currentInnings(st),before=snapshotOf(st);
  const d={type,runs:total,extraRuns,label:type==='wide'?`Wd${total}`:type==='no-ball'?`Nb${total}`:type==='bye'?`B${total}`:type==='leg-bye'?`Lb${total}`:`P${total}`,striker:st.striker,nonStriker:st.nonStriker,bowler:st.bowler,legal:!!c.legal,createdAt:new Date().toISOString()};
  inn.runs+=total;inn.deliveries=inn.deliveries||[];
  if(c.legal){inn.balls++;inn.legalBalls++;}
@@ -868,7 +872,7 @@ function updateWicketSummary(){const m=document.getElementById('wicketModal');if
 async function confirmWicketModal(){const m=document.getElementById('wicketModal');if(!m)return;const fid=m.dataset.fid,type=m.dataset.dismissal||'bowled',runs=Number(m.dataset.runs||0),out=document.getElementById('wicketOutBatter')?.value||'striker';m.remove();await recordWicketManual(fid,type,runs,out)}
 async function recordWicketManual(fid,type,runs,outBatter='striker'){
  const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid)||defaultMatchState(f);if(!f)return;syncMatchSelectionsFromDOM(fid,st);saveMatchState(st);const err=canScore(st);if(err)return alert(err);const out=outBatter==='nonStriker'?st.nonStriker:st.striker;if(!out)return alert('Select the batter who is out.');
- const inn=currentInnings(st),before=JSON.parse(JSON.stringify(st)),r=Math.max(0,Number(runs)||0),d={type:'wicket',dismissal:type,runs:r,label:r?`W+${r}`:'W',striker:st.striker,nonStriker:st.nonStriker,bowler:st.bowler,legal:true,createdAt:new Date().toISOString()};
+ const inn=currentInnings(st),before=snapshotOf(st),r=Math.max(0,Number(runs)||0),d={type:'wicket',dismissal:type,runs:r,label:r?`W+${r}`:'W',striker:st.striker,nonStriker:st.nonStriker,bowler:st.bowler,legal:true,createdAt:new Date().toISOString()};
  inn.runs+=r;inn.balls++;inn.legalBalls++;inn.wickets++;inn.deliveries.push(d);st.batterStats[out]=(st.batterStats[out]||{runs:0,balls:0,fours:0,sixes:0,out:false});st.batterStats[out].out=true;
  if(st.bowler){st.bowlerStats[st.bowler]=(st.bowlerStats[st.bowler]||{balls:0,runs:0,wickets:0});st.bowlerStats[st.bowler].balls++;st.bowlerStats[st.bowler].runs+=r;if(!['run out','retired hurt','obstructing the field'].includes(type))st.bowlerStats[st.bowler].wickets++}
  const overComplete=inn.legalBalls%st.ballsPerOver===0;st.pendingBatterEnd=out==='striker'?(overComplete?'nonStriker':'striker'):(overComplete?'striker':'nonStriker');if(st.pendingBatterEnd==='striker')st.striker='';else st.nonStriker='';
