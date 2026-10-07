@@ -569,8 +569,7 @@ async function createPlayer(){
   try{const x=await post('players',{name,team_id,role}),arr=Array.isArray(x)?x:[x],created=arr[0];if(jersey)created.jersey_number=jersey;cache.players.push(...arr);if(file)savePhoto(created.id,await compressImage(file));durableSave();document.getElementById('playerName').value='';document.getElementById('playerJersey').value='';document.getElementById('playerPhoto').value='';document.getElementById('playerPhotoPreview')?.classList.add('hidden');setStatus('playerStatus','✓ Player created.','ok');renderPlayers();}
   catch(e){setStatus('playerStatus',esc(e.message),'err')}
 }
-async 
-function openTournamentFixtureForm(tid){
+async function openTournamentFixtureForm(tid){
   const teams=cache.teams.filter(t=>t.tournament_id===tid);
   if(teams.length<2){alert('This tournament needs at least 2 teams before a fixture can be created.');return;}
   document.getElementById('tournamentFixtureModal')?.remove();
