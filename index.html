@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>ROBIN CUT SCORER V82 CLOUD SAVE AND SCORING FIX</title>
+<title>ROBIN CUT SCORER V83 FULL LOAD AND MATCH RESTORE</title>
 <style>
 *{box-sizing:border-box}html,body{margin:0;background:#fff;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}body{min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}header{background:#111827;color:#fff;padding:18px 20px 16px;position:sticky;top:0;z-index:20}header h1{margin:0;font-size:28px;letter-spacing:.2px}header p{margin:4px 0 0;color:#cbd5e1;font-size:15px}nav{display:flex;gap:8px;overflow:auto;padding:12px 14px;background:#fff;border-bottom:1px solid #eee;position:sticky;top:80px;z-index:19}nav button{flex:0 0 auto;border:1px solid #d7d7d7;background:#fff;color:#666;border-radius:18px;padding:10px 16px;font-weight:700;font-size:14px}nav button.active{background:#159b8d;color:#fff;border-color:#159b8d}main{max-width:900px;margin:0 auto;padding:14px 14px 60px}.card{background:#fff;border-radius:18px;margin:12px 0;padding:18px;box-shadow:0 1px 0 #eee;border:1px solid #eee}.searchbox{display:flex;align-items:center;background:#e9e9eb;border-radius:28px;padding:0 16px;margin:10px 0 12px}.searchbox input{border:0;background:transparent;outline:0;width:100%;padding:14px 8px;font-size:17px}.searchicon{font-size:24px;color:#777}.chips{display:flex;gap:8px;overflow:auto;padding:2px 0 10px}.chip{border:1.5px solid #777;background:#fff;border-radius:15px;padding:8px 15px;font-weight:700;color:#666;white-space:nowrap}.chip.active{background:#159b8d;color:#fff;border-color:#159b8d}.result{display:flex;gap:14px;align-items:center;background:#f7f7f7;border-radius:22px;padding:8px;margin:10px 0;box-shadow:0 1px 5px #00000012}.result .thumb{width:86px;height:86px;border-radius:18px;background:linear-gradient(145deg,#0e5a43,#e0a72f);display:grid;place-items:center;color:#fff;font-weight:900;font-size:20px;flex:0 0 86px;text-align:center}.result h3{margin:0 0 5px;font-size:18px}.result p{margin:3px 0;color:#777;font-size:14px}.result button{border:0;background:transparent;text-align:left;padding:0}.tour-hero{border-radius:0 0 18px 18px;overflow:hidden;margin:-14px -14px 0;background:#f4f4f4}.tour-cover{height:230px;background:linear-gradient(135deg,#0c3f35,#159b8d 45%,#d89a26);display:grid;place-items:center;color:#fff;font-size:30px;font-weight:900;text-align:center;padding:30px}.tour-head{padding:16px 10px}.tour-head h2{margin:0;font-size:24px;line-height:1.2}.tour-meta{color:#777;margin-top:7px;line-height:1.45}.tour-actions{display:flex;gap:10px;float:right;margin-top:-50px}.circlebtn{width:42px;height:42px;border-radius:50%;border:1px solid #ddd;background:#fff;font-size:20px}.tour-tabs{display:flex;gap:28px;overflow:auto;border-top:1px solid #eee;border-bottom:1px solid #eee;padding:13px 4px}.tour-tabs button{border:0;background:none;color:#777;font-weight:700;font-size:13px;white-space:nowrap;padding:4px 0}.tour-tabs button.active{color:#159b8d;border-bottom:2px solid #159b8d}.winner-row{display:flex;justify-content:center;gap:55px;align-items:flex-end;padding:22px 5px;border-bottom:1px solid #eee}.team-badge{width:76px;height:76px;border-radius:50%;border:5px solid #fff;box-shadow:0 1px 7px #0002;background:linear-gradient(135deg,#263d8d,#d94d67);display:grid;place-items:center;color:#fff;font-size:12px;font-weight:900;text-align:center}.winner-col{text-align:center}.winner-col small{display:block;color:#777;font-weight:800;margin-bottom:6px}.winner-col b{display:block;margin-top:9px;font-size:14px;max-width:120px}.section-title{font-size:18px;font-weight:800;color:#777;margin:18px 0 8px}.topstats{display:grid;grid-template-columns:1fr 1fr;gap:18px;text-align:center;padding:10px 0 18px;border-bottom:1px solid #eee}.bigstat{font-size:40px;font-weight:900}.bigstat-label{color:#777;font-size:14px}.listcard{border:1px solid #e6e6e6;border-radius:16px;padding:14px;margin:9px 0;background:#fff}.listcard h3{margin:0 0 5px}.muted{color:#777;font-size:13px}.tablewrap{overflow:auto}.ptable{width:100%;border-collapse:collapse;min-width:620px}.ptable th,.ptable td{padding:10px 8px;border-bottom:1px solid #eee;text-align:left}.ptable th{color:#777;font-size:12px}.status{padding:12px 14px;border-radius:12px;margin:10px 0}.ok{background:#eaf8ef;color:#176534}.err{background:#fff0f0;color:#a52626}.info{background:#eef7f6;color:#146b63}.warn{background:#fff7df;color:#805d00}label{display:block;font-weight:800;margin:14px 0 7px}input,select{width:100%;padding:13px;border:1px solid #d9d9d9;border-radius:12px;background:#fff}.primary{border:0;border-radius:12px;background:#159b8d;color:#fff;padding:12px 16px;font-weight:800;margin-top:12px}.secondary{border:0;border-radius:12px;background:#eef7f6;color:#147d72;padding:12px 16px;font-weight:800;margin-top:12px}.row{display:flex;gap:9px;flex-wrap:wrap}.hidden{display:none}.small{font-size:13px;color:#777;line-height:1.45}.pill{display:inline-block;padding:5px 9px;border-radius:999px;background:#eef7f6;color:#147d72;font-size:12px;font-weight:800;margin:3px}.diag{border:1px solid #e7e7e7;border-radius:13px;margin-top:9px;padding:12px}.diag b{display:block;margin-bottom:4px}.mono{font-family:ui-monospace,monospace;font-size:12px;word-break:break-word}.squad-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}.player-card{border:1px solid #eee;border-radius:14px;padding:11px}.player-avatar{width:42px;height:42px;border-radius:50%;background:#eee;display:grid;place-items:center;margin-bottom:7px}.match-card{display:flex;justify-content:space-between;gap:10px;align-items:center;border-bottom:1px solid #eee;padding:14px 0}.match-card:last-child{border-bottom:0}.scorepill{font-weight:800;color:#159b8d}.backbtn{border:0;background:none;font-size:28px;padding:4px 0;color:#111}.photo-input{padding:10px;background:#fafafa}.photo-preview{width:92px;height:92px;border-radius:16px;object-fit:cover;border:1px solid #ddd;margin-top:8px;background:#f1f1f1}.avatar-img{width:42px;height:42px;border-radius:50%;object-fit:cover}.thumb-img{width:86px;height:86px;border-radius:18px;object-fit:cover}.team-thumb{width:54px;height:54px;border-radius:14px;object-fit:cover;vertical-align:middle;margin-right:9px}.meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.file-note{font-size:12px;color:#777;margin-top:5px}.entity-hero{padding:4px 0 14px}.entity-head{display:flex;gap:14px;align-items:center}.entity-logo{width:84px;height:84px;border-radius:20px;object-fit:cover;background:#eef7f6;display:grid;place-items:center;font-size:34px;flex:0 0 84px}.entity-logo img{width:100%;height:100%;border-radius:20px;object-fit:cover}.entity-title h2{margin:0 0 5px}.entity-title p{margin:0;color:#777}.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:12px 0}.stat-box{border:1px solid #eee;border-radius:15px;padding:13px;text-align:center}.stat-box b{display:block;font-size:24px}.stat-box span{color:#777;font-size:12px}.clicklink{border:0;background:none;padding:0;text-align:left;font:inherit;color:inherit;font-weight:800}.clicklink:hover{color:#159b8d}.mini-avatar{width:38px;height:38px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:7px}.detail-section{margin-top:18px}.detail-section h3{margin:0 0 8px}.empty-note{padding:12px;border-radius:12px;background:#f7f7f7;color:#777}.fixture-team-link{border:0;background:none;padding:0;font:inherit;font-weight:800;color:#171717}.fixture-team-link:hover{color:#159b8d}
 
@@ -38,7 +38,7 @@
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
 </head>
 <body>
-<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V82</p></header>
+<header><h1>🏏 ROBIN CUT SCORER</h1><p>Online Cricket Tournament &amp; Live Scoring · V83</p></header>
 <nav class="mainnav"><button type="button" class="active" onclick="show('explore',this)">Explore</button><button type="button" onclick="show('tournaments',this)">Tournaments</button><button type="button" onclick="show('teams',this)">Teams</button><button type="button" onclick="show('players',this)">Players</button><button type="button" onclick="show('fixtures',this)">Fixtures</button><button type="button" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -81,7 +81,11 @@ async function timedFetch(url,opt={},timeout=15000){const c=new AbortController(
 function friendlyError(e){const m=String(e?.message||e||'Unknown error');if(/Failed to fetch|Load failed|NetworkError|network/i.test(m))return 'Browser could not reach Supabase. This is usually a network, CORS, DNS, or paused-project issue.';return m}
 const TABLES={tournaments:'rcs_tournaments',teams:'rcs_teams',players:'rcs_players',fixtures:'rcs_fixtures',matches:'rcs_matches',deliveries:'rcs_deliveries'};
 function dbTable(table){return TABLES[table]||table}
-async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&limit=1000&apikey='+encodeURIComponent(c.key);const r=await timedFetch(u,{headers:{Accept:'application/json'}},15000);const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));return t?JSON.parse(t):[]}
+// V83: Supabase returns at most 1000 rows per request, so read every table page by page.
+// Keyset paging on id (id > last id seen) never skips or repeats a row, even if rows are added meanwhile.
+// It stops only on an empty page, so a server row cap below the page size cannot end it early.
+const REST_PAGE=1000;
+async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');if(!/^https?:\/\//i.test(c.url))throw Error('Project URL must start with https://');const out=[];let last=null;for(;;){const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&order=id.asc&limit='+REST_PAGE+(last?'&id=gt.'+encodeURIComponent(last):'')+'&apikey='+encodeURIComponent(c.key);const r=await timedFetch(u,{headers:{Accept:'application/json'}},15000);const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));const rows=t?JSON.parse(t):[];if(!rows.length)return out;out.push(...rows);last=rows[rows.length-1].id}}
 async function post(table,payload){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table),{method:'POST',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json','Accept-Profile':'public',Prefer:'return=representation'},body:JSON.stringify(payload)});const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));return t?JSON.parse(t):[]}
 
 async function upsertStable(table,row){
@@ -93,9 +97,13 @@ async function upsertStable(table,row){
   if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,400));
   return t?JSON.parse(t):[];
 }
+// V83: deliveries grow by ~250 rows per match. Keeping them in localStorage (twice) filled the
+// ~5 MB quota, and then match-state saves failed too. They are kept in Supabase + IndexedDB only.
+const LOCAL_KEYS=['tournaments','teams','players','fixtures','matches'];
 function saveCache(){
   try{
-    for(const k of ['tournaments','teams','players','fixtures','matches','deliveries'])
+    localStorage.removeItem(CACHE_PREFIX+'deliveries');
+    for(const k of LOCAL_KEYS)
       localStorage.setItem(CACHE_PREFIX+k,JSON.stringify(cache[k]));
   }catch{}
   queueIndexedSnapshot();
@@ -113,7 +121,8 @@ function snapshotData(){
 }
 function saveDurableBackup(){
   try{
-    const snap={version:'V73',savedAt:new Date().toISOString(),data:snapshotData()};
+    const data=snapshotData();delete data.deliveries;
+    const snap={version:'V73',savedAt:new Date().toISOString(),data};
     localStorage.setItem(DURABLE_BACKUP_KEY,JSON.stringify(snap));
   }catch{}
 }
@@ -144,7 +153,7 @@ function queueIndexedSnapshot(){
       const tx=db.transaction(IDB_STORE,'readwrite');
       tx.objectStore(IDB_STORE).put({id:'current',version:'V73',savedAt:new Date().toISOString(),data:snapshotData()});
     }catch{}
-  },0);
+  },300);
 }
 async function loadIndexedSnapshot(){
   const db=await openIDB(); if(!db)return null;
@@ -182,16 +191,21 @@ function loadCache(){for(const k of ['tournaments','teams','players','fixtures',
 async function del(table,filters){
   const c=cfg(); if(!c.key)throw Error('No Supabase publishable key');
   const qs=Object.entries(filters).map(([k,v])=>encodeURIComponent(k)+'=eq.'+encodeURIComponent(v)).join('&');
-  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?'+qs,{method:'DELETE',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Accept-Profile':'public',Prefer:'return=minimal'}});
-  const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500)); return true;
+  const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?'+qs,{method:'DELETE',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Accept-Profile':'public',Prefer:'return=representation'}});
+  // Returns how many rows Supabase actually deleted (0 when row-level security blocks it).
+  const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500)); const arr=t?JSON.parse(t):[]; return Array.isArray(arr)?arr.length:0;
 }
+const DELETE_BLOCKED='Supabase did not delete it (the database does not allow deleting this record).';
 function removePhoto(id){try{const o=photoStore();delete o[id];localStorage.setItem(PHOTO_KEY,JSON.stringify(o))}catch{}}
 function cleanupTournamentLocal(id){try{const pm=photoStore();delete pm[id];localStorage.setItem(PHOTO_KEY,JSON.stringify(pm));const tm=tourMetaStore();delete tm[id];localStorage.setItem(TOUR_META_KEY,JSON.stringify(tm));localStorage.removeItem(pointsConfigKey(id))}catch{}}
 function cleanupTeamLocal(teamId){try{const pm=photoStore();delete pm[teamId];cache.players.filter(p=>p.team_id===teamId).forEach(p=>delete pm[p.id]);localStorage.setItem(PHOTO_KEY,JSON.stringify(pm))}catch{}}
 async function patchRow(table,id,payload){
   const c=cfg(); if(!c.key)throw Error('No Supabase publishable key');
   const r=await timedFetch(c.url+'/rest/v1/'+dbTable(table)+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:{apikey:c.key,Authorization:'Bearer '+c.key,'Content-Type':'application/json','Accept-Profile':'public',Prefer:'return=representation'},body:JSON.stringify(payload)});
-  const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500)); return t?JSON.parse(t):[];
+  const t=await r.text(); if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,500));
+  // Supabase answers 200 with no rows when the row is gone or row-level security blocks updates.
+  // Treat that as a failure; otherwise the edit looks saved and is undone by the next refresh.
+  const arr=t?JSON.parse(t):[]; if(!arr.length)throw Error('HTTP 404: Supabase did not save this change (the record is missing or the database does not allow updates).'); return arr;
 }
 function openEditTournament(id){
   document.getElementById('editTournamentModal')?.remove();
@@ -228,7 +242,7 @@ async function deleteTournament(id){
   try{
     for(const f of fixtures) await del('fixtures',{id:f.id});
     for(const tm of teams) await del('teams',{id:tm.id});
-    await del('tournaments',{id});
+    if(!await del('tournaments',{id}))throw Error(DELETE_BLOCKED);
     cache.fixtures=cache.fixtures.filter(x=>x.tournament_id!==id); cache.players=cache.players.filter(p=>!teams.some(tm=>tm.id===p.team_id)); cache.teams=cache.teams.filter(x=>x.tournament_id!==id); cache.tournaments=cache.tournaments.filter(x=>x.id!==id); cache.matches=cache.matches.filter(m=>!fixtures.some(f=>f.id===m.fixture_id)); cache.deliveries=cache.deliveries.filter(d=>!cache.matches.some(m=>m.id===d.match_id));
     cleanupTournamentLocal(id); durableSave(); renderTournaments(); renderTeams(); renderPlayers(); renderFixtures(); runGlobalSearch();
     setStatus('tStatus','✓ Tournament deleted.','ok');
@@ -251,7 +265,7 @@ async function deleteTeam(id){
   const ok=confirm(`Delete team “${t.name}”?\n\nThis will also remove its players and any fixtures/match records involving this team. This cannot be undone.`); if(!ok)return;
   try{
     for(const f of fixtures) await del('fixtures',{id:f.id});
-    await del('teams',{id});
+    if(!await del('teams',{id}))throw Error(DELETE_BLOCKED);
     cache.fixtures=cache.fixtures.filter(f=>!fixtures.some(x=>x.id===f.id)); cache.matches=cache.matches.filter(m=>!fixtures.some(f=>f.id===m.fixture_id)); cache.deliveries=cache.deliveries.filter(d=>!cache.matches.some(m=>m.id===d.match_id)); cache.players=cache.players.filter(p=>p.team_id!==id); cache.teams=cache.teams.filter(x=>x.id!==id);
     cleanupTeamLocal(id); durableSave(); renderTeams(); renderPlayers(); renderFixtures(); if(currentTournament)renderTournament(currentTournament,'TEAMS'); runGlobalSearch();
     setStatus('teamStatus','✓ Team deleted.','ok');
@@ -260,7 +274,7 @@ async function deleteTeam(id){
 async function deletePlayer(id){
   const p=cache.players.find(x=>x.id===id); if(!p)return;
   if(!confirm(`Delete player “${p.name}”?\n\nThis cannot be undone.`))return;
-  try{await del('players',{id});cache.players=cache.players.filter(x=>x.id!==id);removePhoto(id);durableSave();renderPlayers();if(document.getElementById('entityDetail')&&!document.getElementById('entityDetail').classList.contains('hidden'))openTeam(p.team_id);setStatus('playerStatus','✓ Player deleted.','ok');}
+  try{if(!await del('players',{id}))throw Error(DELETE_BLOCKED);cache.players=cache.players.filter(x=>x.id!==id);removePhoto(id);durableSave();renderPlayers();if(document.getElementById('entityDetail')&&!document.getElementById('entityDetail').classList.contains('hidden'))openTeam(p.team_id);setStatus('playerStatus','✓ Player deleted.','ok');}
   catch(e){setStatus('playerStatus','Delete failed: '+friendlyError(e),'err')}
 }
 
@@ -300,6 +314,9 @@ async function loadData(){
     for(const row of local){
       if(!row||!row.id||remoteById.has(row.id))continue;
       if(k==='matches' && String(row.id).startsWith('local-'))continue;
+      // Deliveries are written only by the cloud save queue, and Undo deletes them on purpose.
+      // Pushing a cached copy back would bring undone balls back.
+      if(k==='deliveries')continue;
       try{
         const copy={...row};
         delete copy.__localOnly;
@@ -485,7 +502,7 @@ function renderOnlyMatches(){
   const rows=cache.fixtures.filter(f=>!f.tournament_id);
   l.innerHTML=rows.map(f=>{
     const meta=standaloneMeta(f.id); const type=meta.type||f.match_type||'Single Match';
-    return `<div class="match-card"><div><h3 style="margin:0 0 4px">${esc(teamName(f.team_a))} vs ${esc(teamName(f.team_b))}</h3><div class="muted">${esc(type)} · ${esc(f.venue||'Venue not set')}${fixtureTimeOf(f)?` · ${new Date(fixtureTimeOf(f)).toLocaleString()}`:''}</div>${matchForFixture(f.id)?`<div class="muted" style="margin-top:5px">${esc(matchScoreDisplay(loadMatchState(f.id)||defaultMatchState(f)))}</div>`:''}</div><div class="match-card-actions"><span class="scorepill">${esc(f.status||'scheduled')}</span><button type="button" class="primary smallbtn" onclick="openMatch('${esc(f.id)}')">${matchForFixture(f.id)?'Open Match':'Start Match'}</button><button type="button" class="secondary smallbtn" onclick="shareMatchLink('${esc(f.id)}')">↗ Share Result</button></div></div>`
+    return `<div class="match-card"><div><h3 style="margin:0 0 4px">${esc(teamName(f.team_a))} vs ${esc(teamName(f.team_b))}</h3><div class="muted">${esc(type)} · ${esc(f.venue||'Venue not set')}${fixtureTimeOf(f)?` · ${new Date(fixtureTimeOf(f)).toLocaleString()}`:''}</div>${matchForFixture(f.id)?`<div class="muted" style="margin-top:5px">${esc(fixtureScoreText(f))}</div>`:''}</div><div class="match-card-actions"><span class="scorepill">${esc(f.status||'scheduled')}</span><button type="button" class="primary smallbtn" onclick="openMatch('${esc(f.id)}')">${matchForFixture(f.id)?'Open Match':'Start Match'}</button><button type="button" class="secondary smallbtn" onclick="shareMatchLink('${esc(f.id)}')">↗ Share Result</button></div></div>`
   }).join('')||'<div class="empty-note">No standalone matches yet. Create a Single or Friendly Match above.</div>';
 }
 const STANDALONE_META_KEY='rcs_standalone_match_meta_v1';
@@ -616,17 +633,22 @@ function loadMatchState(fid){
 }
 function saveMatchState(st){
   if(st.history?.length>30)st.history=st.history.slice(-30);
+  // V83: one copy per match only. The old all-matches copy (RCS_MATCH_STATES_V73) doubled the
+  // storage used and is now read only as a legacy fallback.
+  const data=JSON.stringify(st);
+  try{localStorage.setItem(matchStateKey(st.fixtureId),data);return true}catch{}
+  // Storage full: drop the legacy copy and other completed matches (they are rebuilt from Supabase
+  // when reopened), then retry, so the match being scored can always save.
   try{
-    localStorage.setItem(matchStateKey(st.fixtureId),JSON.stringify(st));
-    const key='RCS_MATCH_STATES_V73';
-    const all=JSON.parse(localStorage.getItem(key)||'{}'); all[st.fixtureId]=st;
-    localStorage.setItem(key,JSON.stringify(all));
-  }catch{}
+    localStorage.removeItem('RCS_MATCH_STATES_V73');
+    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(k&&k.startsWith('RCS57_MATCH_STATE_')&&k!==matchStateKey(st.fixtureId)){try{if(JSON.parse(localStorage.getItem(k)||'null')?.completed)localStorage.removeItem(k)}catch{}}}
+    localStorage.setItem(matchStateKey(st.fixtureId),data);return true;
+  }catch(e){console.error('Match state could not be saved on this device:',e);return false}
 }
 function defaultMatchState(f){const t=cache.tournaments.find(x=>x.id===f.tournament_id),meta=f.tournament_id?getTourMeta(f.tournament_id):standaloneMeta(f.id),format=String(t?.format||'').toLowerCase(),maxInnings=format==='test'?4:2;return {fixtureId:f.id,maxInnings,innings:1,battingTeam:f.team_a,bowlingTeam:f.team_b,runs:0,wickets:0,balls:0,over:0,ballInOver:0,legalBalls:0,oversLimit:Number(t?.overs||meta?.overs||10),ballsPerOver:Number(meta?.ballsPerOver||6),target:null,striker:'',nonStriker:'',bowler:'',lastOverBowler:'',started:false,inningsSetupPending:false,completed:false,tossWinner:'',tossDecision:'',umpires:'',scorer:'',notes:'',history:[],inningsData:[{runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]}],batterStats:{},bowlerStats:{}}}
 function getMatchState(f){return loadMatchState(f.id)||defaultMatchState(f)}
 function playersForTeam(teamId){return cache.players.filter(p=>p.team_id===teamId)}
-function initMatchState(f){let st=getMatchState(f);if(!st.history)st.history=[];st.history=st.history.map(h=>{try{return h.includes('"history"')?JSON.stringify(snapshotOf(JSON.parse(h))):h}catch{return h}});if(!st.inningsData||!st.inningsData.length)st.inningsData=[{runs:st.runs||0,wickets:st.wickets||0,balls:st.balls||0,legalBalls:st.legalBalls||0,deliveries:[]}];if(!st.batterStats)st.batterStats={};if(!st.bowlerStats)st.bowlerStats={};saveMatchState(st);return st}
+function initMatchState(f){let st=getMatchState(f);if(!st.history)st.history=[];st.history=st.history.map(h=>{try{return (h.includes('"history"')||h.includes('"deliveries"'))?JSON.stringify(snapshotOf(JSON.parse(h))):h}catch{return h}});if(!st.inningsData||!st.inningsData.length)st.inningsData=[{runs:st.runs||0,wickets:st.wickets||0,balls:st.balls||0,legalBalls:st.legalBalls||0,deliveries:[]}];if(!st.batterStats)st.batterStats={};if(!st.bowlerStats)st.bowlerStats={};saveMatchState(st);return st}
 function currentInnings(st){if(!st.inningsData[st.innings-1])st.inningsData[st.innings-1]={runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]};return st.inningsData[st.innings-1]}
 function syncStateSummary(st){const inn=currentInnings(st);st.runs=inn.runs;st.wickets=inn.wickets;st.balls=inn.balls;st.legalBalls=inn.legalBalls;st.over=Math.floor(inn.legalBalls/st.ballsPerOver);st.ballInOver=inn.legalBalls%st.ballsPerOver}
 function inningsLabel(st){const n=Number(st.innings||1);return `${n}${n===1?'st':n===2?'nd':n===3?'rd':'th'} Innings`}
@@ -638,6 +660,8 @@ function shortTeamName(name){
  if(words.length>1)return words.map(w=>w[0]).join('').slice(0,4).toUpperCase();
  return s.length<=5?s.toUpperCase():s.slice(0,4).toUpperCase();
 }
+// Plain-text score for match lists. Falls back to the Supabase summary when this device has no match state.
+function fixtureScoreText(f){const st=loadMatchState(f.id),m=matchForFixture(f.id);if(st)return `${shortTeamName(teamName(st.battingTeam))} ${st.runs}-${st.wickets} (${Math.floor(st.legalBalls/st.ballsPerOver)}.${st.legalBalls%st.ballsPerOver})${st.resultText?` · ${st.resultText}`:""}`;return m?`${m.runs??0}-${m.wickets??0}${m.innings>1?` (innings ${m.innings})`:""}${m.status==="completed"?" · completed":""}`:""}
 function matchScoreDisplay(st){
  const team=shortTeamName(teamName(st.battingTeam));
  return `${team?`<span style="font-size:18px;font-weight:900;margin-right:7px">${esc(team)}</span>`:''}${st.runs}-${st.wickets} <span style="font-size:18px;font-weight:800">(${Math.floor(st.legalBalls/st.ballsPerOver)}.${st.legalBalls%st.ballsPerOver})</span>`;
@@ -694,7 +718,7 @@ async function afterDelivery(fid,st,overComplete){
 
   return false;
 }
-async function openMatch(fid){const f=cache.fixtures.find(x=>x.id===fid);if(!f)return;currentTournament=f.tournament_id;document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('matchCenter').classList.remove('hidden');document.body.classList.add('in-tournament');await syncPlayersForTeam(f.team_a);await syncPlayersForTeam(f.team_b);renderMatchCenter(fid);resumeMatchPrompt(fid)}
+async function openMatch(fid){const f=cache.fixtures.find(x=>x.id===fid);if(!f)return;currentTournament=f.tournament_id;document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('matchCenter').classList.remove('hidden');document.body.classList.add('in-tournament');await syncPlayersForTeam(f.team_a);await syncPlayersForTeam(f.team_b);if(!loadMatchState(fid))await rebuildMatchFromCloud(fid);renderMatchCenter(fid);resumeMatchPrompt(fid)}
 function resumeMatchPrompt(fid){const st=loadMatchState(fid);if(!st||st.completed||document.querySelector('.wicket-modal'))return;if(st.inningsSetupPending)return inningsLimitReached(st)&&st.innings<Number(st.maxInnings||2)?startNextInnings(fid):openSecondInningsSetup(fid);const lb=currentInnings(st).legalBalls;if(!st.bowler&&st.lastOverBowler&&lb>0&&lb%st.ballsPerOver===0)return openBowlerChangeModal(fid);openNewBatterModal(fid)}
 function activePlayersForTeam(st,teamId,mode='batting'){
   const players=playersForTeam(teamId);
@@ -782,7 +806,10 @@ function setMatchPlayers(fid){
 }
 async function changeBattingTeam(fid){const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid);if(!f||!st)return;st.battingTeam=document.getElementById('mcBatTeam').value;st.bowlingTeam=st.battingTeam===f.team_a?f.team_b:f.team_a;st.striker='';st.nonStriker='';st.bowler='';saveMatchState(st);await syncPlayersForTeam(st.battingTeam);await syncPlayersForTeam(st.bowlingTeam);renderMatchCenter(fid)}
 function ensureStarted(st){st.started=true;return st}
-function snapshotOf(st){const {history,...rest}=st;return JSON.parse(JSON.stringify(rest))}
+// Undo snapshots leave out the ball lists (they only ever grow), storing their lengths instead.
+// Otherwise 30 snapshots of a 20-over innings take ~1.5 MB.
+function snapshotOf(st){const {history,...rest}=st;const s=JSON.parse(JSON.stringify(rest));(s.inningsData||[]).forEach(i=>{i.deliveryCount=(i.deliveries||[]).length;delete i.deliveries});return s}
+function restoreSnapshot(prev,cur){(prev.inningsData||[]).forEach((inn,i)=>{if(!inn.deliveries){const now=cur.inningsData?.[i]?.deliveries||[];inn.deliveries=now.slice(0,inn.deliveryCount??now.length)}delete inn.deliveryCount});return prev}
 function addHistory(st){st.history=st.history||[];st.history.push(JSON.stringify(snapshotOf(st)));if(st.history.length>100)st.history.shift()}
 function canScore(st){if(st.completed)return 'Match is completed.';if(st.inningsSetupPending)return 'Please complete the innings setup first.';if(!st.striker||!st.nonStriker)return 'Please select striker and non-striker.';if(!st.bowler)return 'Please select a bowler.';if(st.bowler===st.lastOverBowler)return 'Please select a different bowler for this over.';return ''}
 function inningsLimitReached(st){const inn=currentInnings(st);const maxBalls=Math.max(1,Number(st.oversLimit)||10)*Math.max(1,Number(st.ballsPerOver)||6);return inn.legalBalls>=maxBalls;}
@@ -904,7 +931,7 @@ function confirmBowlerChange(fid){
 }
 
 function swapStrike(fid){const st=loadMatchState(fid);if(!st||!st.striker||!st.nonStriker)return;[st.striker,st.nonStriker]=[st.nonStriker,st.striker];saveMatchState(st);renderMatchCenter(fid)}
-async function undoLastDelivery(fid){const st=loadMatchState(fid);if(!st||!st.history?.length)return alert('Nothing to undo.');try{const prev=JSON.parse(st.history[st.history.length-1]);prev.history=st.history.slice(0,-1);saveMatchState(prev);void queueCloudJob({type:'undo',fid,summary:matchSummary(prev)});document.querySelectorAll('.wicket-modal').forEach(m=>m.remove());renderMatchCenter(fid);resumeMatchPrompt(fid)}catch(e){alert('Undo failed: '+e.message)}}
+async function undoLastDelivery(fid){const st=loadMatchState(fid);if(!st||!st.history?.length)return alert('Nothing to undo.');try{const prev=restoreSnapshot(JSON.parse(st.history[st.history.length-1]),st);prev.history=st.history.slice(0,-1);saveMatchState(prev);void queueCloudJob({type:'undo',fid,summary:matchSummary(prev)});document.querySelectorAll('.wicket-modal').forEach(m=>m.remove());renderMatchCenter(fid);resumeMatchPrompt(fid)}catch(e){alert('Undo failed: '+e.message)}}
 async function startNextInnings(fid){
  const f=cache.fixtures.find(x=>x.id===fid),st=loadMatchState(fid)||defaultMatchState(f);if(!f)return;
  const maxInnings=Number(st.maxInnings||2);if(st.innings>=maxInnings)return alert('All innings are already completed.');
@@ -970,7 +997,7 @@ async function runCloudJob(job){
  if(job.type==='undo'){
   // Deliveries are saved strictly in order, so the newest row is the ball that was undone.
   const last=(await cloudGet('rcs_deliveries?select=id&match_id=eq.'+encodeURIComponent(matchId)+'&order=created_at.desc&limit=1'))[0];
-  if(last){await del('deliveries',{id:last.id});cache.deliveries=cache.deliveries.filter(d=>d.id!==last.id);saveCache()}
+  if(last){if(!await del('deliveries',{id:last.id}))console.warn('Undo: '+DELETE_BLOCKED);cache.deliveries=cache.deliveries.filter(d=>d.id!==last.id);saveCache()}
  }
  if(job.summary){const x=await patchRow('matches',matchId,{...job.summary,updated_at:new Date().toISOString()}),m=matchForFixture(job.fid);if(m&&x?.[0]){Object.assign(m,x[0]);saveCache()}}
 }
@@ -983,6 +1010,75 @@ async function ensureMatchRow(fid,summary){
  cache.matches.push(m);durableSave();return m.id;
 }
 function persistMatchRow(fid,st){return queueCloudJob({type:'match',fid,summary:matchSummary(st)})}
+
+/* V83 RESTORE A MATCH FROM SUPABASE
+   The full live state is kept on the scoring device. When it is missing (another phone, a cleared
+   browser, a private window), it is rebuilt by replaying the balls in rcs_deliveries with the
+   rcs_matches summary. The database has no innings column, so innings are split by the striker's
+   team, falling back to the ball number restarting. */
+async function cloudGetAll(path){const out=[];for(;;){const rows=await cloudGet(path+'&limit='+REST_PAGE+'&offset='+out.length);if(!rows.length)return out;out.push(...rows)}}
+async function rebuildMatchFromCloud(fid){
+ const f=cache.fixtures.find(x=>x.id===fid);if(!f||!cfg().key)return null;
+ try{
+  const m=matchForFixture(fid)||(await cloudGet('rcs_matches?select=*&fixture_id=eq.'+encodeURIComponent(fid)))[0];if(!m)return null;
+  const rows=await cloudGetAll('rcs_deliveries?select=*&match_id=eq.'+encodeURIComponent(m.id)+'&order=created_at.asc,ball_no.asc,id.asc');
+  const st=replayDeliveries(f,m,rows);saveMatchState(st);return st;
+ }catch(e){console.warn('Could not restore the match from Supabase:',e?.message||e);return null}
+}
+function replayDeliveries(f,m,rows){
+ const st=defaultMatchState(f),bpo=st.ballsPerOver,maxInnings=Number(st.maxInnings||2);
+ const inA=new Set(playersForTeam(f.team_a).map(p=>p.name)),inB=new Set(playersForTeam(f.team_b).map(p=>p.name));
+ const teamOf=n=>inA.has(n)&&!inB.has(n)?f.team_a:inB.has(n)&&!inA.has(n)?f.team_b:'';
+ const other=t=>t===f.team_a?f.team_b:f.team_a;
+ const bat=n=>st.batterStats[n]||(st.batterStats[n]={runs:0,balls:0,fours:0,sixes:0,out:false});
+ const bowl=n=>st.bowlerStats[n]||(st.bowlerStats[n]={balls:0,runs:0,wickets:0});
+ const nextInnings=bt=>{const prevRuns=currentInnings(st).runs;st.innings++;st.battingTeam=bt||other(st.battingTeam);st.bowlingTeam=other(st.battingTeam);st.inningsData.push({runs:0,wickets:0,balls:0,legalBalls:0,deliveries:[]});st.target=(maxInnings===2&&st.innings===2)?prevRuns+1:null;st.lastOverBowler=''};
+ const first=rows.map(r=>teamOf(r.striker)).find(Boolean);if(first){st.battingTeam=first;st.bowlingTeam=other(first)}
+ let lastOut='';
+ rows.forEach((r,i)=>{
+  let inn=currentInnings(st);const bt=teamOf(r.striker);
+  if(inn.deliveries.length&&st.innings<maxInnings&&((bt&&bt!==st.battingTeam)||(!bt&&Number(r.ball_no)<=1&&inn.legalBalls>1))){nextInnings(bt);inn=currentInnings(st)}
+  const [type,dismissal]=String(r.event_type||'run').split(':'),runs=Number(r.runs||0),legal=['run','wicket','bye','leg-bye'].includes(type);
+  const label=type==='run'?String(runs):type==='wicket'?(runs?`W+${runs}`:'W'):type==='wide'?`Wd${runs}`:type==='no-ball'?`Nb${runs}`:type==='bye'?`B${runs}`:type==='leg-bye'?`Lb${runs}`:`P${runs}`;
+  const d={type,runs,label,striker:r.striker||'',nonStriker:r.non_striker||'',bowler:r.bowler||'',legal,createdAt:r.created_at};
+  if(dismissal){d.dismissal=dismissal;if(type!=='wicket')d.wicket=true}
+  if(type!=='wicket'&&type!=='run')d.extraRuns=(type==='wide'||type==='no-ball')?Math.max(0,runs-1):runs;
+  inn.runs+=runs;inn.deliveries.push(d);if(legal){inn.balls++;inn.legalBalls++}
+  // Same credit rules as recordRun / recordExtraManual / recordWicketManual.
+  if(type==='run'&&d.striker){const b=bat(d.striker);b.runs+=runs;b.balls++;if(runs===4)b.fours++;if(runs===6)b.sixes++}
+  if((type==='bye'||type==='leg-bye')&&d.striker)bat(d.striker).balls++;
+  if(type==='no-ball'&&d.extraRuns>0&&d.striker){const b=bat(d.striker);b.runs+=d.extraRuns;if(d.extraRuns===4)b.fours++;if(d.extraRuns===6)b.sixes++}
+  if(d.bowler){const w=bowl(d.bowler);if(!['bye','leg-bye','penalty'].includes(type))w.runs+=runs;if(legal)w.balls++}
+  lastOut='';
+  if(type==='wicket'||dismissal){
+   // Which batter was out is not stored: it is the one missing from the next ball's pair.
+   const nx=rows[i+1],pair=nx&&(!teamOf(nx.striker)||teamOf(nx.striker)===st.battingTeam)?[nx.striker,nx.non_striker]:null;
+   lastOut=pair&&!pair.includes(d.nonStriker)&&pair.includes(d.striker)?d.nonStriker:d.striker;
+   if(lastOut){inn.wickets++;bat(lastOut).out=true;if(d.bowler&&!['run out','retired hurt','obstructing the field'].includes(dismissal))bowl(d.bowler).wickets++}
+  }
+  if(legal&&inn.legalBalls%bpo===0)st.lastOverBowler=d.bowler;
+ });
+ const inn=currentInnings(st),L=inn.deliveries[inn.deliveries.length-1];
+ if(L){
+  let s=L.striker,n=L.nonStriker;
+  const cross=L.type==='run'?L.runs:L.type==='wicket'?0:(L.extraRuns||0);
+  if(cross%2===1)[s,n]=[n,s];
+  const overDone=L.legal&&inn.legalBalls%bpo===0;
+  if(overDone)[s,n]=[n,s];
+  st.striker=s;st.nonStriker=n;
+  if(lastOut){st.pendingBatterEnd=st.striker===lastOut?'striker':'nonStriker';st[st.pendingBatterEnd]=''}
+  st.bowler=overDone?'':L.bowler;
+ }
+ // 2nd innings started in the cloud but no ball bowled yet.
+ while(Number(m.innings||1)>st.innings&&st.innings<maxInnings){nextInnings('');st.striker='';st.nonStriker='';st.bowler='';st.inningsSetupPending=true}
+ if(m.target)st.target=Number(m.target);
+ syncStateSummary(st);
+ if(m.status==='completed'||m.status==='no_result'){st.completed=true;st.bowler='';st.inningsSetupPending=false;st.resultText=matchResult(st);if(m.status==='no_result')st.noResult=true}
+ else if(inningsLimitReached(st)&&st.innings<maxInnings)st.inningsSetupPending=true;
+ st.started=!st.completed&&!!(st.striker&&st.nonStriker&&st.bowler);
+ st.restoredFromCloud=new Date().toISOString();
+ return st;
+}
 function matchResult(st){
  const inn=currentInnings(st),target=Number(st.target||0);
  st.winner=null;st.noResult=false;
@@ -1060,8 +1156,7 @@ async function autoCloudLoad(){
   const c=cfg();
   if(!c.key){lastSyncOk=false;lastSyncMessage='No saved Supabase connection. Local saved data is kept.';updateSyncBanner();return {ok:false,reason:lastSyncMessage};}
 
-  // V81: run the same complete connection-and-sync routine that previously
-  // had to be tapped manually before cloud records appeared after refresh.
+  // Fill the Connection form so the manual "Run Full Connection Test" button still works.
   const urlInput=document.getElementById('url'),keyInput=document.getElementById('key');
   if(urlInput)urlInput.value=c.url;
   if(keyInput)keyInput.value=c.key;
@@ -1071,7 +1166,9 @@ async function autoCloudLoad(){
   for(const delay of [0,1000,2500,5000,9000]){
     if(delay)await new Promise(resolve=>setTimeout(resolve,delay));
     try{
-      await runDiagnostics();
+      // V83: load straight from Supabase with the saved key. runDiagnostics() stays for the manual
+      // button: it reads the hidden form fields and swallows its own errors, so it is not used here.
+      await loadData();
       if(lastSyncOk===true){
         renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();
         return {ok:true,failed:0,pushed:0};
