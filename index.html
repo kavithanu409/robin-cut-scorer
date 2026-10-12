@@ -232,6 +232,7 @@ function snapshotData(){
   return data;
 }
 function saveDurableBackup(){
+  if('indexedDB' in window){try{localStorage.removeItem(DURABLE_BACKUP_KEY)}catch{}return}
   try{
     const data=snapshotData();delete data.deliveries;
     const snap={version:'V73',savedAt:new Date().toISOString(),data};
@@ -854,7 +855,13 @@ const APP_NAME='ROBIN CRICK',APP_VERSION='V85';
 const AUTH_KEY='RC_AUTH_V84';
 let session=null,me={profile:null,roles:{}},authReady=false;
 function loadSession(){try{session=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{session=null}return session}
-function saveSession(s){session=s&&s.access_token?{access_token:s.access_token,refresh_token:s.refresh_token,expires_at:s.expires_at||Math.floor(Date.now()/1000)+(s.expires_in||3600),user:s.user||session?.user||null}:null;try{session?localStorage.setItem(AUTH_KEY,JSON.stringify(session)):localStorage.removeItem(AUTH_KEY)}catch{}}
+// V85: a full localStorage (old photos + backups) made the login silently not save, so a refresh logged
+// people out. Space is freed from copies that also live in IndexedDB/Supabase until the session fits.
+function freeLocalSpace(step){try{if(step===0)localStorage.removeItem(DURABLE_BACKUP_KEY);else if(step===1)LOCAL_KEYS.forEach(k=>localStorage.removeItem(CACHE_PREFIX+k));else if(step===2){const o=photoStore();Object.keys(o).forEach(id=>{if(photoRow(id)[1]?.photo_url)delete o[id]});localStorage.setItem(PHOTO_KEY,JSON.stringify(o))}}catch{}}
+function saveSession(s){session=s&&s.access_token?{access_token:s.access_token,refresh_token:s.refresh_token,expires_at:s.expires_at||Math.floor(Date.now()/1000)+(s.expires_in||3600),user:s.user||session?.user||null}:null;
+  if(!session){try{localStorage.removeItem(AUTH_KEY)}catch{}return}
+  for(let step=0;step<=3;step++){try{localStorage.setItem(AUTH_KEY,JSON.stringify(session));return}catch{if(step<3)freeLocalSpace(step)}}
+  console.warn('Could not keep the login on this device: storage is full.')}
 function myId(){return session?.user?.id||''}
 function myName(){return me.profile?.username||session?.user?.user_metadata?.username||session?.user?.email||''}
 function apiHeaders(extra={}){const c=cfg();return {apikey:c.key,Authorization:'Bearer '+(session?.access_token||c.key),'Accept-Profile':'public',...extra}}
