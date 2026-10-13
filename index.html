@@ -150,6 +150,10 @@ body.scoring-mode main{padding:0;max-width:640px}
 .ptable tr.q-row td{background:rgba(22,163,74,.12)}
 .check-row{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid rgba(127,127,127,.15);font-weight:700}
 .check-row input{width:auto;margin:0}
+
+/* V86 series awards */
+.leader.award.chosen{outline:2px solid #f5b301;background:rgba(245,179,1,.08)}
+.award-fig{font-size:13px!important}
 </style>
 <!-- V73: Supabase is the permanent database; refresh/version changes must not erase saved records. -->
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
@@ -1391,10 +1395,30 @@ function tourHome(t,teams,M){
   <div class="section-title">Teams</div><div class="team-strip">${teams.map(x=>`<button class="team-chip" onclick="openTeam('${esc(x.id)}')">${teamLogo(x.id,'rc-logo lg')}<span>${esc(x.name)}</span></button>`).join('')||'<p class="small">No teams yet.</p>'}</div>
   <div class="section-title">Tournament at a glance</div><div class="kstats">${stat(`${done}/${M.all.length}`,'Matches played')}${stat(S.totals.runs,'Runs')}${stat(S.totals.wickets,'Wickets')}${stat(S.totals.sixes,'Sixes')}${stat(S.totals.fours,'Fours')}${stat(S.totals.fifties+S.totals.hundreds,'50s / 100s')}</div>
   <div class="leaders">${leaderTile('🏏 Most runs',top,top?.runs)}${leaderTile('🎯 Most wickets',topW,topW?.wickets)}${leaderTile('⭐ Highest score',hi,hi?`${hi.runs}${hi.notOut?'*':''}`:'')}</div>
+  ${seriesAwardsCard(t)}
   ${M.up.length?`<div class="section-title">Next up</div>${M.up.slice(0,2).map(matchCard).join('')}`:''}
   ${M.done.length?`<div class="section-title">Latest result</div>${matchCard(M.done[0])}`:''}
   <button class="sharebar wide" onclick="shareOrCopy('${esc(t.name)}',tournamentLink('${esc(t.id)}'))">↗ Share tournament link</button>`;
 }
+// V86 series awards, stored in points_config.awards = {mos,bat,bowl:{name,team}}.
+// Suggestions: most runs, most wickets, and for man of the series a points score
+// (runs, +10 per fifty, 20 per wicket, +25 per player-of-the-match award).
+function seriesTotals(tid){const m=new Map(),get=(name,team)=>{const k=team+'|'+name;let x=m.get(k);if(!x){x={name,team,runs:0,balls:0,wickets:0,conceded:0,pom:0,pts:0};m.set(k,x)}return x};
+  cache.fixtures.filter(f=>f.tournament_id===tid&&matchStatus(f.id)!=='upcoming').forEach(f=>{const st=viewState(f.id);if(!st)return;matchCards(st,f).forEach(c=>{c.batters.forEach(b=>{const x=get(b.name,c.team);x.runs+=b.runs;x.balls+=b.balls;x.pts+=b.runs+(b.runs>=50?10:0)});c.bowlers.forEach(w=>{const x=get(w.name,c.bowlTeam);x.wickets+=w.wickets;x.conceded+=w.runs;x.pts+=w.wickets*20})});
+    const pom=chosenPom(f.id,st);if(pom){const team=pomTeam(f,pom);if(team){const x=get(pom,team);x.pom++;x.pts+=25}}});
+  return [...m.values()]}
+function seriesSuggest(tid){const T=seriesTotals(tid),best=fn=>T.filter(x=>fn(x)>0).sort((a,b)=>fn(b)-fn(a))[0]||null;return {mos:best(x=>x.pts),bat:best(x=>x.runs*1000-x.balls),bowl:best(x=>x.wickets*1000-x.conceded)}}
+function seriesAwards(tid){return getFullPointConfig(tid).awards||{}}
+function awardFig(tid,a,kind){const x=seriesTotals(tid).find(y=>y.name===a.name&&y.team===a.team);if(!x)return '';const bat=`${x.runs} run${x.runs===1?'':'s'}`,bowl=`${x.wickets} wkt${x.wickets===1?'':'s'}`;return kind==='bat'?bat:kind==='bowl'?bowl:[x.runs?bat:'',x.wickets?bowl:'',x.pom?`${x.pom}× POM`:''].filter(Boolean).join(' · ')}
+const AWARDS=[['mos','🏅 Man of the series'],['bat','🏏 Best batsman'],['bowl','🎯 Best bowler']];
+function seriesAwardsCard(t){const A=seriesAwards(t.id),sug=seriesSuggest(t.id),manage=canManageT(t.id);if(!Object.keys(A).length&&!sug.mos&&!manage)return '';
+  const tile=([k,label])=>{const a=A[k],x=a||sug[k];return `<div class="leader award ${a?'chosen':''}">${x?`<div class="leader-av">${playerAvatar(x.name,x.team)}</div><div>${pl(x.name,x.team)}</div><span class="muted">${esc(teamName(x.team))}</span><b class="award-fig">${esc(awardFig(t.id,x,k))}</b>`:'<b>—</b>'}<div class="leader-l">${label}${a?'':' <small>(leading)</small>'}</div></div>`};
+  return `<div class="section-title">🏆 Series awards</div><div class="leaders">${AWARDS.map(tile).join('')}</div>${manage?`<button class="secondary smallbtn" onclick="openAwardsModal('${esc(t.id)}')">🏆 ${Object.keys(A).length?'Change':'Choose'} series awards</button>`:''}`}
+function openAwardsModal(tid){const A=seriesAwards(tid),sug=seriesSuggest(tid),teams=cache.teams.filter(x=>x.tournament_id===tid),T=seriesTotals(tid);
+  const names=team=>[...new Set([...playersForTeam(team).map(p=>p.name),...T.filter(x=>x.team===team).map(x=>x.name)])];
+  const sel=([k,label])=>{const cur=A[k]||sug[k];return `<label>${label}</label><select id="aw_${k}"><option value="">— Not chosen —</option>${teams.map(tm=>`<optgroup label="${esc(tm.name)}">${names(tm.id).map(n=>{const v=tm.id+'|'+n,f=awardFig(tid,{name:n,team:tm.id},k);return `<option value="${esc(v)}" ${cur&&cur.team===tm.id&&cur.name===n?'selected':''}>${esc(n)}${f?` — ${esc(f)}`:''}</option>`}).join('')}</optgroup>`).join('')}</select>`};
+  modal('awardsModal',`<h3>🏆 Series awards</h3><p class="small">The current leaders are selected to start with. Change any of them, then Save.</p>${AWARDS.map(sel).join('')}<div class="modal-actions"><button type="button" class="secondary" onclick="closeModal('awardsModal')">Cancel</button><button type="button" class="primary" onclick="saveAwards('${esc(tid)}')">Save</button></div>`)}
+function saveAwards(tid){const full=getFullPointConfig(tid),aw={};AWARDS.forEach(([k])=>{const v=document.getElementById('aw_'+k)?.value||'',i=v.indexOf('|');if(i>0)aw[k]={team:v.slice(0,i),name:v.slice(i+1)}});full.awards=aw;saveFullPointConfig(tid,full);closeModal('awardsModal');toast('✓ Series awards saved.');renderTournament(tid,'HOME')}
 function leaderTile(label,x,val){return `<div class="leader">${x?`<div class="leader-av">${playerAvatar(x.name,x.team)}</div><b>${esc(val)}</b><div>${pl(x.name,x.team)}</div><span class="muted">${esc(teamName(x.team))}</span>`:'<b>—</b>'}<div class="leader-l">${label}</div></div>`}
 function playerAvatar(name,team){const id=playerIdByName(name,team),ph=id&&getPhoto(id);return ph?`<img src="${ph}" alt="">`:`<span>${esc(initials(name))}</span>`}
 function tourTeams(t,teams){
