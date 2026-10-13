@@ -178,7 +178,7 @@ body.scoring-mode main{padding:0;max-width:640px}
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
 </head>
 <body>
-<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.png" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V87</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
+<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V88</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
 <nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -415,7 +415,7 @@ function teamStatSummary(teamId){const fs=cache.fixtures.filter(f=>f.team_a===te
 function openTeamMatchList(team,kind){const fx=cache.fixtures.filter(f=>f.team_a===team||f.team_b===team);const list=kind==='upcoming'?sortFixtures(fx.filter(f=>matchStatus(f.id)!=='completed')):fx.filter(f=>matchStatus(f.id)==='completed'&&(kind==='played'||teamResultText(f,team)[0]===kind));
   modal('teamMatchList',`<button class="modal-x" onclick="closeModal('teamMatchList')">✕</button><h3>${esc(teamName(team))} · ${({played:'Played',won:'Won',lost:'Lost',upcoming:'Upcoming'})[kind]} (${list.length})</h3><div onclick="closeModal('teamMatchList')">${list.map(matchCard).join('')||'<div class="empty-note">No matches.</div>'}</div>`)}
 function teamMatchList(teamId,kind){return cache.fixtures.filter(f=>f.team_a===teamId||f.team_b===teamId).filter(f=>kind==='scheduled'?!matchForFixture(f.id)||matchForFixture(f.id)?.status!=='completed':!!matchForFixture(f.id)&&matchForFixture(f.id)?.status==='completed')}
-function openPlayer(id){document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('entityDetail').classList.remove('hidden');document.body.classList.add('in-tournament');renderPlayerDetail(id)}
+function openPlayer(id){view={kind:'player',id,tab:''};document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('entityDetail').classList.remove('hidden');document.body.classList.add('in-tournament');renderPlayerDetail(id)}
 function filterTourCards(inputId,containerId){const q=(document.getElementById(inputId)?.value||'').toLowerCase();document.querySelectorAll('#'+containerId+'>*').forEach(c=>c.style.display=c.innerText.toLowerCase().includes(q)?'':'none')}
 function sTotal(id,run){return tournamentDeliveries(id).filter(d=>Number(d.runs||0)===run).length}
 function formatDate(v){try{return new Date(v+'T00:00:00').toLocaleDateString(undefined,{day:'2-digit',month:'short',year:'numeric'})}catch{return v}}
@@ -889,7 +889,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V87';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V88';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -1031,7 +1031,7 @@ async function loadData(){
   void migrateDeviceSettings().then(retryPhotoUploads);
   return {ok:failed===0,failed,pushed};
 }
-async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const out=[];let last=null;for(;;){const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&order=id.asc&limit='+REST_PAGE+(last?'&id=gt.'+encodeURIComponent(last):'');const r=await timedFetch(u,{headers:apiHeaders({Accept:'application/json'})},15000);const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));const rows=t?JSON.parse(t):[];if(!rows.length)return out;out.push(...rows);last=rows[rows.length-1].id}}
+async function rest(table){const c=cfg();if(!c.key)throw Error('No Supabase publishable key');const out=[];let last=null;for(;;){const u=c.url+'/rest/v1/'+dbTable(table)+'?select=*&order=id.asc&limit='+REST_PAGE+(last?'&id=gt.'+encodeURIComponent(last):'');const r=await timedFetch(u,{headers:apiHeaders({Accept:'application/json'})},15000);const t=await r.text();if(!r.ok)throw Error('HTTP '+r.status+': '+t.slice(0,300));const rows=t?JSON.parse(t):[];if(!rows.length)return out;out.push(...rows);if(rows.length<REST_PAGE)return out;last=rows[rows.length-1].id}}
 // Writes drop columns the database does not have yet (PGRST204), so an older database never loses a ball.
 function missingColumn(msg){const m=/Could not find the '([^']+)' column/.exec(msg||'');return m?m[1]:null}
 async function writeCompat(fn,payload){let p={...payload};for(let i=0;i<12;i++){try{return await fn(p)}catch(e){const col=missingColumn(e.message);if(!col||!(col in p))throw e;delete p[col]}}}
@@ -1096,7 +1096,7 @@ function rate(runs,balls,bpo){return balls?(runs/(balls/bpo)).toFixed(2):'0.00'}
 function initials(name){const w=String(name||'').trim().split(/\s+/).filter(Boolean);return (w.length>1?w[0][0]+w[1][0]:String(name||'?').slice(0,2)).toUpperCase()}
 function teamLogo(id,cls='rc-logo'){const ph=getPhoto(id);return ph?`<img class="${cls}" src="${ph}" alt="">`:`<span class="${cls} rc-logo-txt">${esc(initials(teamName(id)))}</span>`}
 function fmtTime(v){if(!v)return '';try{return new Date(v).toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch{return v}}
-function rerenderCurrent(){renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();applyAuthGates();if(view.kind==='tournament'&&view.id)renderTournament(view.id,view.tab);else if(view.kind==='match'&&view.id)renderMatchView(view.id,view.tab);else if(view.kind==='team'&&view.id)renderTeamDetail(view.id)}
+function rerenderCurrent(){renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();applyAuthGates();if(view.kind==='tournament'&&view.id)renderTournament(view.id,view.tab);else if(view.kind==='match'&&view.id)renderMatchView(view.id,view.tab);else if(view.kind==='team'&&view.id)renderTeamDetail(view.id);else if(view.kind==='player'&&view.id)renderPlayerDetail(view.id)}
 let view={kind:'',id:'',tab:''};
 // Short team code for the scoring bar: "Robin Kings" -> "RK", "Batti" -> "BATTI".
 function shortTeamName(name){const s=String(name||'').trim();if(!s)return '';const w=s.split(/\s+/).filter(Boolean);if(w.length>1)return w.map(x=>x[0]).join('').slice(0,4).toUpperCase();return s.length<=5?s.toUpperCase():s.slice(0,4).toUpperCase()}
@@ -1360,7 +1360,7 @@ async function showStorageUsage(){const el=document.getElementById('storageUsage
   const bar=(label,pct,used,lim)=>`<div class="usage"><div class="usage-l"><span>${label}</span><b>${used} / ${lim} MB</b></div><div class="usage-bar"><i style="width:${Math.min(100,pct).toFixed(1)}%;background:${pct>=80?'var(--rc-red)':pct>=60?'#d97706':'#16a34a'}"></i></div></div>`;
   el.innerHTML=bar('Database',x.db,x.mb(x.u.db_bytes),x.mb(x.u.db_limit))+bar('Photos',x.files,x.mb(x.u.files_bytes),x.mb(x.u.files_limit))+(Math.max(x.db,x.files)>=80?'<div class="status err">Storage is almost full. Upgrade the Supabase plan or delete old tournaments so new scores keep saving.</div>':'')}
 async function warnIfStorageFull(){if(!cache.tournaments.some(t=>t.owner_id===myId()))return;const k='RC_STORAGE_WARNED',last=Number(localStorage.getItem(k)||0);if(Date.now()-last<86400000)return;const x=await storageUsage();if(x&&Math.max(x.db,x.files)>=80){localStorage.setItem(k,String(Date.now()));toast(`⚠ Free plan storage is ${Math.round(Math.max(x.db,x.files))}% full. Open Account for details.`,'err')}}
-function brandMark(){return `<img class="brand-logo" src="robin-crick-logo.png" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))">`}
+function brandMark(){return `<img class="brand-logo" src="robin-crick-logo.jpg" alt="" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))">`}
 
 /* ---------- Invitations ---------- */
 const PENDING_INVITE_KEY='RC_PENDING_INVITE';
@@ -1916,9 +1916,23 @@ function runGlobalSearch(){const q=(document.getElementById('globalSearch')?.val
 async function openFromHash(){
   const h=location.hash||'';
   if(h.startsWith('#invite=')){sessionStorage.setItem(PENDING_INVITE_KEY,decodeURIComponent(h.slice(8)));history.replaceState(null,'',location.pathname);await acceptPendingInvite();return}
-  if(h.startsWith('#t=')){const id=decodeURIComponent(h.slice(3));if(cache.tournaments.some(t=>t.id===id))openTournament(id);return}
-  if(h.startsWith('#match=')){const id=decodeURIComponent(h.slice(7));if(cache.fixtures.some(f=>f.id===id))openMatch(id)}
+  const q=new URLSearchParams(h.slice(1)),tab=q.get('tab')||'';
+  if(q.get('t')){const id=q.get('t');if(cache.tournaments.some(t=>t.id===id)){openTournament(id);if(tab&&tab!=='HOME')renderTournament(id,tab)}return}
+  if(q.get('match')){const id=q.get('match');if(cache.fixtures.some(f=>f.id===id)){await openMatch(id);if(tab&&matchTabs(id).some(x=>x[0]===tab))renderMatchView(id,tab)}return}
+  if(q.get('team')){if(cache.teams.some(t=>t.id===q.get('team')))openTeam(q.get('team'));return}
+  if(q.get('player')){if(cache.players.some(p=>p.id===q.get('player')))openPlayer(q.get('player'));return}
+  if(q.get('sec')&&document.getElementById(q.get('sec')))show(q.get('sec'))
 }
+// V87: keep the current page in the address bar, so a refresh reopens the same tournament / match / team / player.
+let lastHash=null,hashReady=false;
+function syncHash(){const v=view,e=encodeURIComponent;let h='';
+  if(v.kind==='tournament'&&v.id)h=`#t=${e(v.id)}${v.tab&&v.tab!=='HOME'?`&tab=${e(v.tab)}`:''}`;
+  else if((v.kind==='match'||v.kind==='scoring')&&v.id)h=`#match=${e(v.id)}${v.kind==='match'&&v.tab?`&tab=${e(v.tab)}`:''}`;
+  else if(v.kind==='team'&&v.id)h=`#team=${e(v.id)}`;
+  else if(v.kind==='player'&&v.id)h=`#player=${e(v.id)}`;
+  else{const sec=document.querySelector('main>section:not(.hidden)')?.id;if(sec&&!['explore','centre','entityDetail','matchCenter'].includes(sec))h=`#sec=${e(sec)}`}
+  if(/^#(access_token|invite|error)/.test(location.hash))return;
+  if(h!==lastHash&&h!==location.hash){lastHash=h;history.replaceState(null,'',location.pathname+location.search+h)}else lastHash=h}
 async function bootApp(){
   if(__rcsBootPromise)return __rcsBootPromise;
   __rcsBootPromise=(async()=>{
@@ -1930,12 +1944,12 @@ async function bootApp(){
     renderAuthUI();rerenderCurrent();
     void flushCloudQueue();
     if(kind==='recovery')openAuth('newpass');else if(kind==='signup'||kind==='magiclink'||kind==='signin')toast(`✓ Email verified. Welcome, @${esc(myName())}!`);
-    await openFromHash();
+    await openFromHash();hashReady=true;syncHash();
     return result;
   })();
   return __rcsBootPromise;
 }
-window.addEventListener('hashchange',()=>{if(/^#(t|match|invite)=/.test(location.hash))openFromHash()});
+window.addEventListener('hashchange',()=>{if(/^#(t|match|team|player|sec|invite)=/.test(location.hash))openFromHash()});
 // Keep the session fresh while the app is open.
 setInterval(()=>{if(session)ensureFreshSession()},60000);
 
@@ -1943,7 +1957,7 @@ setInterval(()=>{if(session)ensureFreshSession()},60000);
 // Scoreboard flash: any score with a data-fk key blinks once when its text changes between renders.
 const scoreSeen=new Map();let flashQueued=false;
 function flashScores(){flashQueued=false;document.querySelectorAll('[data-fk]').forEach(el=>{const k=el.dataset.fk,v=el.textContent.trim(),o=scoreSeen.get(k);if(o!==undefined&&o!==v&&v){el.classList.remove('score-flash');void el.offsetWidth;el.classList.add('score-flash')}scoreSeen.set(k,v)})}
-new MutationObserver(()=>{if(!flashQueued){flashQueued=true;requestAnimationFrame(flashScores)}}).observe(document.body,{childList:true,subtree:true});
+new MutationObserver(()=>{if(!flashQueued){flashQueued=true;requestAnimationFrame(()=>{flashScores();if(hashReady)syncHash()})}}).observe(document.body,{childList:true,subtree:true});
 </script>
 </body>
 </html>
