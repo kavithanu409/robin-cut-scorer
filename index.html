@@ -140,6 +140,10 @@ body.scoring-mode main{padding:0;max-width:640px}
 .tappable-stat{font:inherit;background:#fff;cursor:pointer}
 .usage{margin:6px 0}.usage-l{display:flex;justify-content:space-between}
 .usage-bar{height:8px;background:#e5e7eb;border-radius:99px;overflow:hidden;margin-top:4px}.usage-bar i{display:block;height:100%}
+
+/* V86 scoreboard flash */
+@keyframes scoreFlash{0%{background:rgba(255,214,0,.85);color:#111;transform:scale(1.06)}60%{background:rgba(255,214,0,.35)}100%{background:transparent;transform:scale(1)}}
+.score-flash{animation:scoreFlash 1s ease-out;border-radius:8px}
 </style>
 <!-- V73: Supabase is the permanent database; refresh/version changes must not erase saved records. -->
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
@@ -1365,7 +1369,7 @@ function matchCard(f){
   const s=matchStatus(f.id),sc=s==='upcoming'?{}:miniScore(f.id),res=s==='completed'?resultTextFor(f.id):'',st=s==='live'?viewState(f.id):null;
   const tag=s==='live'?'<span class="st-pill live">● LIVE</span>':s==='completed'?'<span class="st-pill done">RESULT</span>':'<span class="st-pill up">UPCOMING</span>';
   const meta=[f.tournament_id?'':esc(f.match_type||standaloneMeta(f.id).type||'Match'),esc(f.venue||''),esc(fmtTime(fixtureTimeOf(f)))].filter(Boolean).join(' · ');
-  const row=t=>`<div class="mc-team ${st&&st.battingTeam===t?'batting':''}">${teamLogo(t,'rc-logo sm')}<span class="mc-name">${esc(teamName(t))}</span><span class="mc-score">${esc(sc[t]||'')}</span></div>`;
+  const row=t=>`<div class="mc-team ${st&&st.battingTeam===t?'batting':''}">${teamLogo(t,'rc-logo sm')}<span class="mc-name">${esc(teamName(t))}</span><span class="mc-score" data-fk="${esc(f.id)}|${esc(t)}">${esc(sc[t]||'')}</span></div>`;
   const live=st&&!st.completed?`<div class="mc-note">${st.target?`Need ${Math.max(0,st.target-st.runs)} off ${Math.max(0,st.oversLimit*st.ballsPerOver-st.legalBalls)} balls`:`${esc(inningsLabel(st))} · CRR ${rate(st.runs,st.legalBalls,st.ballsPerOver)}`}</div>`:'';
   return `<div class="mcard" onclick="openMatch('${esc(f.id)}')"><div class="mc-top">${tag}<span class="muted">${meta}</span></div>${row(f.team_a)}${row(f.team_b)}${res?`<div class="mc-res">${esc(res)}</div>`:live}${canScoreFixture(f)&&s!=='completed'?`<div class="mc-actions" onclick="event.stopPropagation()"><button class="primary smallbtn" onclick="scoreMatch('${esc(f.id)}')">${s==='live'?'Continue scoring':'Start scoring'}</button></div>`:''}</div>`;
 }
@@ -1502,7 +1506,7 @@ function liveBoard(st,f,cards){
   const done=ov&&ov.legal>=c.bpo,curOver=ov&&!(done&&st.bowler&&!st.completed)?ov:null;
   const bt=(n,star)=>n?`<tr class="${star?'on-strike':''}"><td>${pl(n,c.team)}${star?' <span class="strike">*</span>':''}</td><td><b>${b(n).runs}</b></td><td>${b(n).balls}</td><td>${b(n).fours}</td><td>${b(n).sixes}</td><td>${b(n).balls?(b(n).runs/b(n).balls*100).toFixed(1):'0.0'}</td></tr>`:'';
   const overFig=curOver?`${curOver.balls.filter(x=>x.legal).length} balls · ${curOver.conceded} runs${curOver.wickets?` · ${curOver.wickets} wkt`:''}`:'';
-  return `<div class="lb"><div class="lb-score"><span class="lb-team">${esc(teamName(c.team))}</span><span class="lb-big">${c.runs}/${c.wickets}</span><span class="lb-ov">(${oversText(c.legal,c.bpo)} ov)</span></div>
+  return `<div class="lb"><div class="lb-score" data-fk="lb|${esc(f.id)}|${esc(c.team)}"><span class="lb-team">${esc(teamName(c.team))}</span><span class="lb-big">${c.runs}/${c.wickets}</span><span class="lb-ov">(${oversText(c.legal,c.bpo)} ov)</span></div>
   <div class="lb-line">${liveStatusLine(st,f)}</div>
   <table class="lb-table"><thead><tr><th>Batter</th><th>R</th><th>B</th><th>4s</th><th>6s</th><th>SR</th></tr></thead><tbody>${bt(st.striker,true)}${bt(st.nonStriker,false)}${!st.striker&&!st.nonStriker?'<tr><td colspan="6" class="muted">Waiting for batters…</td></tr>':''}</tbody></table>
   <table class="lb-table"><thead><tr><th>Bowler</th><th>O</th><th>M</th><th>R</th><th>W</th><th>Econ</th></tr></thead><tbody>${w?`<tr><td>${pl(w.name,c.bowlTeam)}${st.bowler?'':' <span class="muted">(last over)</span>'}</td><td>${oversText(w.balls,c.bpo)}</td><td>${w.maidens}</td><td>${w.runs}</td><td><b>${w.wickets}</b></td><td>${rate(w.runs,w.balls,c.bpo)}</td></tr>`:'<tr><td colspan="6" class="muted">Waiting for bowler…</td></tr>'}</tbody></table>
@@ -1590,7 +1594,7 @@ function renderMatchCenter(fid){
   const locked=st.completed||st.inningsSetupPending;
   document.getElementById('matchCenterBody').innerHTML=`<div class="sp">
    <div class="sp-top"><button class="sp-back" onclick="openMatch('${esc(fid)}')">←</button><div class="sp-title">${esc(shortTeamName(teamName(f.team_a)))} v ${esc(shortTeamName(teamName(f.team_b)))} · ${esc(inningsLabel(st))}</div><button class="sp-menu" onclick="openScoreMenu('${esc(fid)}')">⋯</button></div>
-   <div class="sp-board"><div class="sp-score"><span class="sp-team">${esc(shortTeamName(teamName(st.battingTeam)))}</span><span class="sp-big">${st.runs}/${st.wickets}</span><span class="sp-ov">${oversText(st.legalBalls,bpo)}<small>/${st.oversLimit}</small></span></div>
+   <div class="sp-board"><div class="sp-score" data-fk="sp|${esc(fid)}"><span class="sp-team">${esc(shortTeamName(teamName(st.battingTeam)))}</span><span class="sp-big">${st.runs}/${st.wickets}</span><span class="sp-ov">${oversText(st.legalBalls,bpo)}<small>/${st.oversLimit}</small></span></div>
     <div class="sp-rr">CRR ${rate(st.runs,st.legalBalls,bpo)}${st.target?` · Target ${st.target} · Need <b>${need}</b> off ${Math.max(0,left)}`:''}${st.completed?` · <b>${esc(st.resultText||'Completed')}</b>`:''}</div>
     <div class="sp-bats">${who('striker',true)}${who('nonStriker',false)}</div>
     <div class="sp-bowl">${st.bowler?`<span>🎯 ${esc(st.bowler)}</span><b>${w?`${oversText(w.balls,bpo)}-${w.maidens}-${w.runs}-${w.wickets}`:'0.0-0-0-0'}</b>`:sel('bowler','Select bowler',st.bowlingTeam,'bowling')}</div>
@@ -1834,6 +1838,11 @@ window.addEventListener('hashchange',()=>{if(/^#(t|match|invite)=/.test(location
 // Keep the session fresh while the app is open.
 setInterval(()=>{if(session)ensureFreshSession()},60000);
 
+
+// Scoreboard flash: any score with a data-fk key blinks once when its text changes between renders.
+const scoreSeen=new Map();let flashQueued=false;
+function flashScores(){flashQueued=false;document.querySelectorAll('[data-fk]').forEach(el=>{const k=el.dataset.fk,v=el.textContent.trim(),o=scoreSeen.get(k);if(o!==undefined&&o!==v&&v){el.classList.remove('score-flash');void el.offsetWidth;el.classList.add('score-flash')}scoreSeen.set(k,v)})}
+new MutationObserver(()=>{if(!flashQueued){flashQueued=true;requestAnimationFrame(flashScores)}}).observe(document.body,{childList:true,subtree:true});
 </script>
 </body>
 </html>
