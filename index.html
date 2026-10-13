@@ -173,12 +173,17 @@ body.scoring-mode main{padding:0;max-width:640px}
 .contact-btn small{font-weight:600;opacity:.9;font-size:12px;word-break:break-all}
 .contact-btn.wa{background:#25d366}.contact-btn.em{background:#0a236f}.contact-btn.fb{background:#1877f2}
 @media(min-width:700px){.contact-row{grid-template-columns:repeat(3,1fr)}}
+
+/* V88 restoring the page from the address bar: hide home until it opens */
+html.restoring main>section{visibility:hidden}
+html.restoring main::before{content:'Loading…';display:block;text-align:center;padding:40px 0;color:#667;font-weight:700}
 </style>
 <!-- V73: Supabase is the permanent database; refresh/version changes must not erase saved records. -->
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
 </head>
 <body>
-<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V88</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
+<script>if(/^#(t|match|score|team|player|sec)=/.test(location.hash)){document.documentElement.classList.add('restoring');setTimeout(()=>document.documentElement.classList.remove('restoring'),15000)}</script>
+<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V89</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
 <nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -842,6 +847,7 @@ async function autoCloudLoad(){
   loadSaved();
   try{await recoverLocalSnapshots()}catch(e){console.warn('Local snapshot recovery failed:',e)}
   renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();
+  try{await restoreView(false)}catch{}
 
   const c=cfg();
   if(!c.key){lastSyncOk=false;lastSyncMessage='No saved Supabase connection. Local saved data is kept.';updateSyncBanner();return {ok:false,reason:lastSyncMessage};}
@@ -889,7 +895,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V88';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V89';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -1916,18 +1922,25 @@ function runGlobalSearch(){const q=(document.getElementById('globalSearch')?.val
 async function openFromHash(){
   const h=location.hash||'';
   if(h.startsWith('#invite=')){sessionStorage.setItem(PENDING_INVITE_KEY,decodeURIComponent(h.slice(8)));history.replaceState(null,'',location.pathname);await acceptPendingInvite();return}
-  const q=new URLSearchParams(h.slice(1)),tab=q.get('tab')||'';
-  if(q.get('t')){const id=q.get('t');if(cache.tournaments.some(t=>t.id===id)){openTournament(id);if(tab&&tab!=='HOME')renderTournament(id,tab)}return}
-  if(q.get('match')){const id=q.get('match');if(cache.fixtures.some(f=>f.id===id)){await openMatch(id);if(tab&&matchTabs(id).some(x=>x[0]===tab))renderMatchView(id,tab)}return}
-  if(q.get('team')){if(cache.teams.some(t=>t.id===q.get('team')))openTeam(q.get('team'));return}
-  if(q.get('player')){if(cache.players.some(p=>p.id===q.get('player')))openPlayer(q.get('player'));return}
-  if(q.get('sec')&&document.getElementById(q.get('sec')))show(q.get('sec'))
+  await restoreView(true)
 }
+// V88: reopen the page named in the address bar. Runs once from this phone's saved data
+// (no flash of the home page) and again after the cloud load. final=true also starts scoring.
+function hashTarget(){const q=new URLSearchParams((location.hash||'').slice(1));for(const k of ['t','match','score','team','player','sec'])if(q.get(k))return {k,id:q.get(k),tab:q.get('tab')||''};return null}
+function viewMatches(h){const v=view;return h.k==='t'?v.kind==='tournament'&&v.id===h.id&&(v.tab||'HOME')===(h.tab||'HOME'):h.k==='match'?v.kind==='match'&&v.id===h.id:h.k==='score'?v.kind==='scoring'&&v.id===h.id:h.k==='team'?v.kind==='team'&&v.id===h.id:h.k==='player'?v.kind==='player'&&v.id===h.id:h.k==='sec'?!document.getElementById(h.id)?.classList.contains('hidden'):false}
+async function restoreView(final){const h=hashTarget();try{if(!h)return;if(viewMatches(h))return;
+  if(h.k==='t'){if(cache.tournaments.some(t=>t.id===h.id)){openTournament(h.id);if(h.tab&&h.tab!=='HOME')renderTournament(h.id,h.tab)}}
+  else if(h.k==='match'||h.k==='score'){const f=cache.fixtures.find(x=>x.id===h.id);if(f){if(h.k==='score'&&final&&myId()&&canScoreFixture(f)&&matchStatus(f.id)!=='completed')await scoreMatch(h.id);else if(view.kind!=='match'||view.id!==h.id){await openMatch(h.id);if(h.tab&&matchTabs(h.id).some(x=>x[0]===h.tab))renderMatchView(h.id,h.tab)}}}
+  else if(h.k==='team'){if(cache.teams.some(t=>t.id===h.id))openTeam(h.id)}
+  else if(h.k==='player'){if(cache.players.some(p=>p.id===h.id))openPlayer(h.id)}
+  else if(h.k==='sec'&&document.getElementById(h.id))show(h.id)}
+ finally{if(final||(h&&viewMatches(h)))document.documentElement.classList.remove('restoring')}}
 // V87: keep the current page in the address bar, so a refresh reopens the same tournament / match / team / player.
 let lastHash=null,hashReady=false;
 function syncHash(){const v=view,e=encodeURIComponent;let h='';
   if(v.kind==='tournament'&&v.id)h=`#t=${e(v.id)}${v.tab&&v.tab!=='HOME'?`&tab=${e(v.tab)}`:''}`;
-  else if((v.kind==='match'||v.kind==='scoring')&&v.id)h=`#match=${e(v.id)}${v.kind==='match'&&v.tab?`&tab=${e(v.tab)}`:''}`;
+  else if(v.kind==='scoring'&&v.id)h=`#score=${e(v.id)}`;
+  else if(v.kind==='match'&&v.id)h=`#match=${e(v.id)}${v.tab?`&tab=${e(v.tab)}`:''}`;
   else if(v.kind==='team'&&v.id)h=`#team=${e(v.id)}`;
   else if(v.kind==='player'&&v.id)h=`#player=${e(v.id)}`;
   else{const sec=document.querySelector('main>section:not(.hidden)')?.id;if(sec&&!['explore','centre','entityDetail','matchCenter'].includes(sec))h=`#sec=${e(sec)}`}
@@ -1949,7 +1962,7 @@ async function bootApp(){
   })();
   return __rcsBootPromise;
 }
-window.addEventListener('hashchange',()=>{if(/^#(t|match|team|player|sec|invite)=/.test(location.hash))openFromHash()});
+window.addEventListener('hashchange',()=>{if(/^#(t|match|score|team|player|sec|invite)=/.test(location.hash))openFromHash()});
 // Keep the session fresh while the app is open.
 setInterval(()=>{if(session)ensureFreshSession()},60000);
 
