@@ -154,12 +154,18 @@ body.scoring-mode main{padding:0;max-width:640px}
 /* V86 series awards */
 .leader.award.chosen{outline:2px solid #f5b301;background:rgba(245,179,1,.08)}
 .award-fig{font-size:13px!important}
+
+/* V86 qualification calculator */
+.qc-pickers{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0}.qc-pickers select{flex:1;min-width:120px;margin:0}
+.qc-sum{padding:10px 12px;border-radius:10px;font-weight:700;margin:8px 0}.qc-sum.ok{background:rgba(22,163,74,.14)}.qc-sum.no{background:rgba(220,38,38,.12)}.qc-sum.maybe{background:rgba(245,179,1,.15)}
+.qc-table td{text-align:left;font-size:13px}.qc-ok td:last-child{color:#16a34a;font-weight:800}.qc-no td:last-child{color:#dc2626;font-weight:800}.qc-maybe td:last-child{color:#b45309;font-weight:700}.qc-nrronly td:last-child{color:#2563eb}
+.qc-nrr{display:grid;gap:8px;margin-top:8px}.qc-nrr>div{border:1px solid rgba(127,127,127,.25);border-radius:10px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
 </style>
 <!-- V73: Supabase is the permanent database; refresh/version changes must not erase saved records. -->
 <!-- V73: permanent local IndexedDB snapshot + Supabase write-through persistence. -->
 </head>
 <body>
-<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.png" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V85</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
+<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.png" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V86</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
 <nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -868,7 +874,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V85';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V86';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -1150,6 +1156,46 @@ function allOutWickets(team){const n=playersForTeam(team).length;return Math.max
    a side bowled out is counted as having faced its full overs (standard rule). */
 function fixtureNrrParts(f){const out={};const m=matchForFixture(f.id),st=viewState(f.id);if(!st||m?.status==='no_result'||st.noResult)return out;const bpo=Number(st.ballsPerOver||6),quota=fixtureOvers(f)*bpo;matchCards(st,f).forEach(c=>{const faced=c.wickets>=allOutWickets(c.team)?quota:c.legal;(out[c.team]=out[c.team]||{rf:0,bf:0,ra:0,bb:0});(out[c.bowlTeam]=out[c.bowlTeam]||{rf:0,bf:0,ra:0,bb:0});out[c.team].rf+=c.runs;out[c.team].bf+=faced/bpo;out[c.bowlTeam].ra+=c.runs;out[c.bowlTeam].bb+=faced/bpo});return out}
 function teamResultText(f,team){const m=matchForFixture(f.id),st=viewState(f.id),w=m?.winner||st?.winner||null,by=(/ won (by .*)$/i.exec(resultTextFor(f.id)||'')||[])[1]||'';if(m?.status==='no_result'||st?.noResult)return ['nr','No result'];if(w===team)return ['won',`Won ${by}`.trim()];if(w)return ['lost',`Lost ${by}`.trim()];return ['tie','Tied']}
+// V86 qualification calculator. Tries every win/lose combination of the group's remaining
+// matches (ties / no results left out), then works out the NRR margin for the team's next match.
+const qcState={};
+function openQualCalc(tid){const full=getFullPointConfig(tid),ri=pointRoundIndex(tid,full),c=getPointConfig(tid),teams=cache.teams.filter(x=>x.tournament_id===tid);
+  const groups=c.groups.map(g=>({name:g.name,ids:g.teamIds.filter(id=>teams.some(x=>x.id===id))})).filter(g=>g.ids.length>1);
+  if(!groups.length)return alert('Set up the points table groups first.');
+  const q=qcState[tid]=qcState[tid]&&qcState[tid].round===ri?qcState[tid]:{round:ri,g:0,team:groups[0].ids[0],pos:1,score:''};q.groups=groups;q.roundNo=full.rounds.length>1?ri+1:null;
+  modal('qualCalc',`<div class="ts-head"><b>🧮 Qualification calculator</b><button class="modal-x" onclick="closeModal('qualCalc')">✕</button></div><div id="qcBody"></div>`,'wicket-modal sheet-modal');renderQualCalc(tid)}
+function qcSet(tid,k,v){const q=qcState[tid];q[k]=v;if(k==='g'){q.team=q.groups[v].ids[0];q.pos=1}renderQualCalc(tid)}
+function renderQualCalc(tid){const q=qcState[tid],g=q.groups[q.g],ids=g.ids,me=q.team,el=document.getElementById('qcBody');if(!el)return;
+  const table=computeStandings(tid,ids,q.roundNo),base=new Map(table.map(r=>[r.id,r]));
+  const left=sortFixtures(cache.fixtures.filter(f=>f.tournament_id===tid&&ids.includes(f.team_a)&&ids.includes(f.team_b)&&(!q.roundNo||fixtureRound(f)===q.roundNo)&&matchStatus(f.id)!=='completed'));
+  const mine=left.filter(f=>f.team_a===me||f.team_b===me),others=left.filter(f=>!mine.includes(f)),pos=Math.min(q.pos,ids.length);
+  const posName=n=>n===1?'1st':n===2?'2nd':n===3?'3rd':n+'th',tn=id=>esc(shortTeamName(teamName(id))),opp=f=>f.team_a===me?f.team_b:f.team_a;
+  let html=`<div class="qc-pickers">${q.groups.length>1?`<select onchange="qcSet('${esc(tid)}','g',+this.value)">${q.groups.map((x,i)=>`<option value="${i}" ${i===q.g?'selected':''}>${esc(x.name)}</option>`).join('')}</select>`:''}<select onchange="qcSet('${esc(tid)}','team',this.value)">${ids.map(id=>`<option value="${esc(id)}" ${id===me?'selected':''}>${esc(teamName(id))}</option>`).join('')}</select><select onchange="qcSet('${esc(tid)}','pos',+this.value)">${ids.slice(0,-1).map((_,i)=>`<option value="${i+1}" ${i+1===pos?'selected':''}>${i?`Finish in top ${i+1}`:'Finish 1st'}</option>`).join('')}</select></div>`;
+  html+=`<p class="small">Now: ${tn(me)} ${posName(table.findIndex(r=>r.id===me)+1)} with ${base.get(me).pts} pts, NRR ${(base.get(me).nrr>=0?'+':'')+base.get(me).nrr.toFixed(3)} · ${left.length} match${left.length===1?'':'es'} left in ${esc(g.name)}.</p>`;
+  if(!left.length){html+=`<div class="status info">No matches left in this group. Final position: <b>${posName(table.findIndex(r=>r.id===me)+1)}</b>.</div>`;el.innerHTML=html;return}
+  if(left.length>14){html+=`<div class="status info">${left.length} matches are still to play, which is too many combinations to check. The calculator works once 14 or fewer are left.</div>`;el.innerHTML=html;return}
+  // Enumerate: bit i set = team_a of left[i] wins.
+  const n=left.length,res=[];for(let mask=0;mask<(1<<n);mask++){const pts=new Map(ids.map(id=>[id,base.get(id).pts]));left.forEach((f,i)=>{const w=mask>>i&1?f.team_a:f.team_b;pts.set(w,pts.get(w)+2)});const mp=pts.get(me);let above=0,tied=0;ids.forEach(id=>{if(id===me)return;const p=pts.get(id);if(p>mp)above++;else if(p===mp)tied++});res.push({mask,v:above+tied<pos?2:above<pos?1:0})}
+  const cnt=[0,0,0];res.forEach(r=>cnt[r.v]++);
+  html+=`<div class="qc-sum ${cnt[2]===res.length?'ok':cnt[0]===res.length?'no':'maybe'}">${cnt[2]===res.length?`✅ ${tn(me)} will finish ${pos===1?'1st':`in the top ${pos}`} whatever happens.`:cnt[0]===res.length?`❌ ${tn(me)} can no longer finish ${pos===1?'1st':`in the top ${pos}`}.`:`${tn(me)} finishes ${pos===1?'1st':`in the top ${pos}`} in <b>${cnt[2]}</b> of ${res.length} outcomes on points alone, and in <b>${cnt[1]}</b> more if their NRR is better.`}</div>`;
+  // Group outcomes by the team's own results.
+  const idx=f=>left.indexOf(f),winsFor=(f,mask)=>(mask>>idx(f)&1?f.team_a:f.team_b);
+  const combos=new Map();res.forEach(r=>{const key=mine.map(f=>winsFor(f,r.mask)===me?'W':'L').join('');(combos.get(key)||combos.set(key,[]).get(key)).push(r)});
+  const rows=[...combos.entries()].sort((a,b)=>(b[0].split('W').length)-(a[0].split('W').length)).map(([key,rs])=>{const label=mine.length?mine.map((f,i)=>`${key[i]==='W'?'Beat':'Lose to'} ${tn(opp(f))}`).join(', '):'Other results';
+    const sure=rs.filter(r=>r.v===2),maybe=rs.filter(r=>r.v===1);let verdict,cls;
+    if(sure.length===rs.length){verdict='Qualifies whatever else happens';cls='ok'}else if(!sure.length&&!maybe.length){verdict='Not enough';cls='no'}else{const good=sure.length?sure:maybe,need=others.filter(f=>{const w=winsFor(f,good[0].mask);return good.every(r=>winsFor(f,r.mask)===w)}).map(f=>`${tn(winsFor(f,good[0].mask))} beat ${tn(winsFor(f,good[0].mask)===f.team_a?f.team_b:f.team_a)}`);
+      verdict=(sure.length?'':'Only on NRR. ')+(need.length?`Also needs: ${need.join(', ')}`:sure.length?`Depends on other results (${sure.length} of ${rs.length} work)`:'');cls=sure.length?'maybe':'nrronly'}
+    return `<tr class="qc-${cls}"><td>${label}</td><td>${verdict}</td></tr>`}).join('');
+  html+=`<div class="section-title">What ${tn(me)} need</div><div class="tablewrap"><table class="ts-table qc-table"><thead><tr><th>${tn(me)}'s results</th><th>Outcome</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+  // NRR margin for the next match against the team just ahead on NRR.
+  const next=mine[0];if(next){const R=base.get(me),N=fixtureOvers(next),bpo=getTourMeta(tid).ballsPerOver||6,rivals=table.filter(r=>r.id!==me&&r.nrr>R.nrr),rival=rivals[rivals.length-1];
+    if(rival){const S=Number(q.score)||Math.max(20,Math.round(N*8)),tgt=rival.nrr;
+      const maxConcede=Math.ceil(((R.rf+S)/(R.bf+N)-tgt)*(R.bb+N)-R.ra)-1,winBy=S-Math.min(S-1,maxConcede);
+      const den=tgt+(R.ra+S-1)/(R.bb+N),maxOv=den>0?(R.rf+S)/den-R.bf:N,balls=Math.min(N*bpo,Math.floor(maxOv*bpo-1e-9));
+      html+=`<div class="section-title">To pass ${tn(rival.id)} on NRR (${(rival.nrr>=0?'+':'')+rival.nrr.toFixed(3)})</div><p class="small">Next match: ${tn(me)} v ${tn(opp(next))}, ${N} overs. Assumes ${tn(rival.id)}'s NRR stays the same.</p><label>Runs scored (or target)</label><input type="number" min="1" value="${S}" onchange="qcSet('${esc(tid)}','score',this.value)">
+      <div class="qc-nrr"><div><b>Batting first, scoring ${S}</b><span>${maxConcede<0?`Even a win by ${S} runs is not enough.`:`Win by <b>${winBy}+ runs</b> (keep ${tn(opp(next))} to ${Math.min(S-1,maxConcede)} or less)`}</span></div><div><b>Chasing ${S}</b><span>${balls<1?'Not possible with this target.':`Reach ${S} within <b>${oversText(balls,bpo)} overs</b>`}</span></div></div>`}
+    else html+=`<p class="small">${tn(me)} already have the best NRR in ${esc(g.name)}.</p>`}
+  html+=`<p class="small muted">Ties and no results are not included. Win = 2 points.</p>`;el.innerHTML=html}
 function openTeamSheet(tid,team,round){
   const fx=sortFixtures(cache.fixtures.filter(f=>f.tournament_id===tid&&(f.team_a===team||f.team_b===team)&&(!round||fixtureRound(f)===round)));
   const done=fx.filter(f=>matchStatus(f.id)==='completed').sort((a,b)=>String(fixtureTimeOf(a)||matchForFixture(a.id)?.updated_at||'').localeCompare(String(fixtureTimeOf(b)||matchForFixture(b.id)?.updated_at||''))),rest=fx.filter(f=>matchStatus(f.id)!=='completed');
@@ -1438,7 +1484,7 @@ function tourPoints(t,teams){
   const roundTools=manage?`<div class="row round-tools"><button class="secondary smallbtn" onclick="openQualifiedModal('${esc(t.id)}')">✅ Mark qualified teams</button><button class="secondary smallbtn" onclick="addPointsRound('${esc(t.id)}')">＋ Create next round</button>${multi?`<button class="secondary smallbtn" onclick="renamePointsRound('${esc(t.id)}')">✏️ Rename round</button>`:''}${multi&&ri===full.rounds.length-1?`<button class="danger-btn smallbtn" onclick="removePointsRound('${esc(t.id)}')">Remove this round</button>`:''}</div>`:'';
   const groups=c.groups.map((g,gi)=>{const ids=g.teamIds.filter(id=>teams.some(x=>x.id===id)),rows=computeStandings(t.id,ids,round),showT=rows.some(r=>r.t),showNR=rows.some(r=>r.nr);
     return `<div class="listcard"><div class="pool-head"><h3>${esc(g.name)}</h3><span class="group-badge">${ids.length} teams</span></div>${ids.length?`<div class="tablewrap"><table class="ptable points-report"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>L</th>${showT?'<th>T</th>':''}${showNR?'<th>NR</th>':''}<th>Pts</th><th>NRR</th></tr></thead><tbody>${rows.map((r,i)=>`<tr class="${qual.includes(r.id)?'q-row':''}"><td>${i+1}</td><td class="teamcell"><button class="clicklink" onclick="openTeamSheet('${esc(t.id)}','${esc(r.id)}',${round||0})">${teamLogo(r.id,'rc-logo sm')}<b>${esc(r.name)}</b>${qual.includes(r.id)?' <span class="q-badge">Q</span>':''} <span class="chev">⌄</span></button></td><td>${r.p}</td><td>${r.w}</td><td>${r.l}</td>${showT?`<td>${r.t}</td>`:''}${showNR?`<td>${r.nr}</td>`:''}<td><b>${r.pts}</b></td><td>${r.p?(r.nrr>=0?'+':'')+r.nrr.toFixed(3):'—'}</td></tr>`).join('')}</tbody></table></div>`:'<div class="empty-note">No teams in this group yet.</div>'}</div>`}).join('');
-  return `${tabs}<div id="pointsExport" class="export-area"><div class="export-title">${esc(t.name)} · Points Table${multi?` · ${esc(full.rounds[ri].name||'')}`:''}</div><p class="small">Win = 2 points · Tie / No result = 1 point. Updates automatically when a match is completed. Tap a team to see its results.${qual.length?' <span class="q-badge">Q</span> = qualified for the next round.':''}</p>${groups}</div><div class="report-actions"><button class="share-btn" onclick="sharePoints('${esc(t.id)}')">↗ Share</button><button class="download-btn" onclick="exportJpg('pointsExport','${esc(t.name)} points table')">🖼 JPG</button><button class="download-btn" onclick="downloadPointsCSV('${esc(t.id)}')">↓ CSV</button></div>${roundTools}${manage?`<details class="group-config"><summary>⚙️ Groups / pools setup${multi?` · ${esc(full.rounds[ri].name||'')}`:''}</summary>${renderPointConfig(t.id,teams)}</details>`:''}`;
+  return `${tabs}<div id="pointsExport" class="export-area"><div class="export-title">${esc(t.name)} · Points Table${multi?` · ${esc(full.rounds[ri].name||'')}`:''}</div><p class="small">Win = 2 points · Tie / No result = 1 point. Updates automatically when a match is completed. Tap a team to see its results.${qual.length?' <span class="q-badge">Q</span> = qualified for the next round.':''}</p>${groups}</div><div class="report-actions"><button class="secondary smallbtn" onclick="openQualCalc('${esc(t.id)}')">🧮 Qualification calculator</button><button class="share-btn" onclick="sharePoints('${esc(t.id)}')">↗ Share</button><button class="download-btn" onclick="exportJpg('pointsExport','${esc(t.name)} points table')">🖼 JPG</button><button class="download-btn" onclick="downloadPointsCSV('${esc(t.id)}')">↓ CSV</button></div>${roundTools}${manage?`<details class="group-config"><summary>⚙️ Groups / pools setup${multi?` · ${esc(full.rounds[ri].name||'')}`:''}</summary>${renderPointConfig(t.id,teams)}</details>`:''}`;
 }
 function tourStats(t){
   const S=tournamentStats(t.id);
