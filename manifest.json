@@ -13,7 +13,7 @@
   "icons": [
     {
       "src": "./robin-crick-logo.png",
-      "sizes": "256x250",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
