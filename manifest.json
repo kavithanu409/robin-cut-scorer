@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "ROBIN CRICK",
+  "short_name": "ROBIN CRICK",
+  "description": "Cricket tournaments, live scores, scorecards and statistics.",
+  "lang": "en-GB",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#071a57",
+  "theme_color": "#071a57",
+  "icons": [
+    {
+      "src": "./robin-crick-logo.png",
+      "sizes": "256x250",
+      "type": "image/png"
+    }
+  ]
+}
