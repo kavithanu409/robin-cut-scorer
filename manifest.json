@@ -11,10 +11,15 @@
   "background_color": "#071a57",
   "theme_color": "#071a57",
   "icons": [
-    {
-      "src": "./robin-crick-logo.png",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
-  ]
+  {
+    "src": "./robin-crick-icon-192.png",
+    "sizes": "192x192",
+    "type": "image/png"
+  },
+  {
+    "src": "./robin-crick-logo.png",
+    "sizes": "512x512",
+    "type": "image/png"
+  }
+]
 }
