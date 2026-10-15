@@ -184,11 +184,12 @@ html.restoring main::before{content:'Loading…';display:block;text-align:center
 </head>
 <body>
 <script>if(/^#(t|match|score|team|player|sec)=/.test(location.hash)){document.documentElement.classList.add('restoring');setTimeout(()=>document.documentElement.classList.remove('restoring'),15000)}</script>
-<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V91</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
+<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V92</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
 <nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
 <div id="syncBanner" class="status info hidden"></div>
+<div id="liveNow" class="card live-now hidden"></div>
 <div class="home-no-image"><div class="home-copy"><div class="home-mark">🏏</div><div class="hero-badge">ROBIN SPORTS CLUB</div><h2>ROBIN CRICK</h2><p>Cricket Tournament Management &amp; Live Scoring</p><div class="home-sub">Tournaments&nbsp; • &nbsp;Teams&nbsp; • &nbsp;Matches&nbsp; • &nbsp;Player Statistics</div><button class="hero-btn" type="button" onclick="show('tournaments')">VIEW TOURNAMENTS</button></div></div>
 <div class="card"><h3>Find a Tournament</h3><div class="searchbox"><input id="globalSearch" placeholder="Search tournaments, teams, matches or players" oninput="runGlobalSearch()"><span class="searchicon">⌕</span></div><div class="chips"><button class="chip active" data-filter="Club" onclick="setSearchFilter(this)">Club</button><button class="chip" data-filter="Tournament" onclick="setSearchFilter(this)">Tournament</button><button class="chip" data-filter="Match" onclick="setSearchFilter(this)">Match</button><button class="chip" data-filter="Team" onclick="setSearchFilter(this)">Team</button><button class="chip" data-filter="Player" onclick="setSearchFilter(this)">Player</button></div><div id="globalResults"></div></div><div class="card" id="exploreQuick"><h3>Explore</h3><div class="quick-grid"><button type="button" class="quick-card" onclick="show('tournaments')"><b>🏆 Tournaments</b><span>Open and explore tournaments</span></button><button type="button" class="quick-card" onclick="show('teams')"><b>🏏 Teams</b><span>Open team details and squads</span></button><button type="button" class="quick-card" onclick="show('players')"><b>👤 Players</b><span>Open player profiles and statistics</span></button><button type="button" class="quick-card" onclick="show('fixtures')"><b>📅 Tournament Matches</b><span>Open tournament fixtures and match centre</span></button><button type="button" class="quick-card" onclick="show('onlyMatches')"><b>🏏 Only Matches</b><span>Single, friendly and practice matches</span></button></div></div></div>
 <div class="card contact-card"><h3>📞 Contact us</h3><p class="small">Questions, tournament set-up or support: message us any time.</p><div class="contact-row"><a class="contact-btn wa" href="https://wa.me/447903766627" target="_blank" rel="noopener">🟢 WhatsApp<small>+44 7903 766627</small></a><a class="contact-btn em" href="mailto:nigeshanthkavis@gmail.com">✉️ Email<small>nigeshanthkavis@gmail.com</small></a><a class="contact-btn fb" href="https://www.facebook.com/share/19ThxMCCEU/?mibextid=wwXIfr" target="_blank" rel="noopener">📘 Facebook<small>Robin Sports Club</small></a></div></div>
@@ -815,7 +816,7 @@ async function retryCloudSync(){
   void flushCloudQueue();
   try{
     const result=await loadData();
-    renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();
+    renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();renderLiveNow();
     return result;
   }catch(e){
     console.warn('Cloud sync retry failed:',e);
@@ -899,7 +900,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V91';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V92';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -1106,7 +1107,7 @@ function rate(runs,balls,bpo){return balls?(runs/(balls/bpo)).toFixed(2):'0.00'}
 function initials(name){const w=String(name||'').trim().split(/\s+/).filter(Boolean);return (w.length>1?w[0][0]+w[1][0]:String(name||'?').slice(0,2)).toUpperCase()}
 function teamLogo(id,cls='rc-logo'){const ph=getPhoto(id);return ph?`<img class="${cls}" src="${ph}" alt="">`:`<span class="${cls} rc-logo-txt">${esc(initials(teamName(id)))}</span>`}
 function fmtTime(v){if(!v)return '';try{return new Date(v).toLocaleString(undefined,{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}catch{return v}}
-function rerenderCurrent(){renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();applyAuthGates();if(view.kind==='tournament'&&view.id)renderTournament(view.id,view.tab);else if(view.kind==='match'&&view.id)renderMatchView(view.id,view.tab);else if(view.kind==='team'&&view.id)renderTeamDetail(view.id);else if(view.kind==='player'&&view.id)renderPlayerDetail(view.id)}
+function rerenderCurrent(){renderTournaments();renderTeams();renderPlayers();renderFixtures();renderOnlyMatches();runGlobalSearch();renderLiveNow();applyAuthGates();if(view.kind==='tournament'&&view.id)renderTournament(view.id,view.tab);else if(view.kind==='match'&&view.id)renderMatchView(view.id,view.tab);else if(view.kind==='team'&&view.id)renderTeamDetail(view.id);else if(view.kind==='player'&&view.id)renderPlayerDetail(view.id)}
 let view={kind:'',id:'',tab:''};
 // Short team code for the scoring bar: "Robin Kings" -> "RK", "Batti" -> "BATTI".
 function shortTeamName(name){const s=String(name||'').trim();if(!s)return '';const w=s.split(/\s+/).filter(Boolean);if(w.length>1)return w.map(x=>x[0]).join('').slice(0,4).toUpperCase();return s.length<=5?s.toUpperCase():s.slice(0,4).toUpperCase()}
@@ -1429,7 +1430,7 @@ function show(id,btn){
   if(id!=='centre')view={kind:'',id:'',tab:''};
   const outer=['tournaments','teams','players','fixtures','onlyMatches','connection','explore'];
   if(outer.includes(id))document.body.classList.remove('in-tournament');
-  if(id==='tournaments')renderTournaments();if(id==='teams')renderTeams();if(id==='players')renderPlayers();if(id==='fixtures')renderFixtures();if(id==='onlyMatches')renderOnlyMatches();if(id==='connection')loadSaved();if(id==='explore')runGlobalSearch();
+  if(id==='tournaments')renderTournaments();if(id==='teams')renderTeams();if(id==='players')renderPlayers();if(id==='fixtures')renderFixtures();if(id==='onlyMatches')renderOnlyMatches();if(id==='connection')loadSaved();if(id==='explore'){livePollKey='';runGlobalSearch();renderLiveNow()}
   if(id==='centre'&&currentTournament){document.body.classList.add('in-tournament');if(view.kind!=='tournament')renderTournament(currentTournament,'HOME')}
   window.scrollTo(0,0);
 }
@@ -1453,6 +1454,21 @@ function renderTournament(id,tab='HOME'){
   if(M.live.length)startLivePoll(()=>{if(view.kind==='tournament'&&view.id===id&&['HOME','MATCHES','MATCHES_ALL'].includes(view.tab))renderTournament(id,view.tab)},M.live.slice(0,6).map(f=>f.id),20000);
 }
 function miniScore(fid){const st=viewState(fid),f=cache.fixtures.find(x=>x.id===fid);if(!st||!f)return {};const cards=matchCards(st,f),by={};cards.forEach(c=>{by[c.team]=`${c.runs}/${c.wickets} (${oversText(c.legal,c.bpo)})`});return by}
+// Home "Live now": up to 2 tournaments and 2 matches being scored right now, for every visitor.
+// A match that was never ended stops counting as live after 12 hours without a ball.
+let livePollKey='';
+function liveFixtures(){const cut=Date.now()-12*3600e3,last=f=>Date.parse(matchForFixture(f.id)?.updated_at||'')||0;
+  return cache.fixtures.filter(f=>matchStatus(f.id)==='live'&&last(f)>cut).sort((a,b)=>last(b)-last(a))}
+function renderLiveNow(){const el=document.getElementById('liveNow');if(!el)return;
+  const live=liveFixtures(),seen=new Set(),tours=[];
+  for(const f of live){if(f.tournament_id&&!seen.has(f.tournament_id)){seen.add(f.tournament_id);const t=cache.tournaments.find(x=>x.id===f.tournament_id);if(t)tours.push(t)}}
+  const tl=tours.slice(0,2),ml=live.slice(0,2);
+  el.classList.toggle('hidden',!live.length);
+  el.innerHTML=live.length?`<h3><span class="st-pill live">● LIVE</span> Live now</h3>${tl.length?`<div class="section-title">Tournaments</div>${tl.map(tCard).join('')}`:''}<div class="section-title">Matches</div>${ml.map(matchCard).join('')}`:'';
+  // Keep the scores ticking while the home page is open (every 20 seconds).
+  const home=!document.getElementById('explore')?.classList.contains('hidden'),key=ml.map(f=>f.id).join(',');
+  if(!home||!ml.length){if(livePollKey){livePollKey='';if(home)stopLivePoll()}return}
+  if(key!==livePollKey||!livePoll){livePollKey=key;startLivePoll(()=>{if(!document.getElementById('explore').classList.contains('hidden'))renderLiveNow()},ml.map(f=>f.id),20000)}}
 function matchCard(f){
   const s=matchStatus(f.id),sc=s==='upcoming'?{}:miniScore(f.id),res=s==='completed'?resultTextFor(f.id):'',st=s==='live'?viewState(f.id):null;
   const tag=s==='live'?'<span class="st-pill live">● LIVE</span>':s==='completed'?'<span class="st-pill done">RESULT</span>':'<span class="st-pill up">UPCOMING</span>';
