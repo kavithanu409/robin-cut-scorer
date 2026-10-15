@@ -184,7 +184,7 @@ html.restoring main::before{content:'Loading…';display:block;text-align:center
 </head>
 <body>
 <script>if(/^#(t|match|score|team|player|sec)=/.test(location.hash)){document.documentElement.classList.add('restoring');setTimeout(()=>document.documentElement.classList.remove('restoring'),15000)}</script>
-<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V90</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
+<header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V91</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
 <nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
@@ -899,7 +899,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V90';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V91';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -1677,7 +1677,7 @@ async function scoreMatch(fid,force=false){
   }
   if(!cache.matches.some(m=>m.id===r.match_id)){try{const ms=await cloudGet('rcs_matches?select=*&id=eq.'+r.match_id);if(ms[0])cache.matches.push(ms[0])}catch{}}
   if(f.scorer_id!==myId()){patchRow('fixtures',fid,{scorer_id:myId()}).then(x=>Object.assign(f,x[0]||{})).catch(()=>{})}
-  lockFid=fid;clearInterval(lockTimer);lockTimer=setInterval(()=>{rpc('rcs_claim_match',{p_fixture:fid}).then(x=>{if(x&&!x.ok){stopScoringLock(false);toast('⚠ Another scorer took over this match.','err');openMatch(fid)}}).catch(()=>{})},120000);
+  lockFid=fid;clearInterval(lockTimer);lockTimer=setInterval(()=>checkScoringLock(fid),120000);
   await Promise.all([syncPlayersForTeam(f.team_a),syncPlayersForTeam(f.team_b)]);
   // Use this phone's saved state, or rebuild it from Supabase when another phone scored before.
   const local=loadMatchState(fid),m=matchForFixture(fid);if(m)await refreshMatch(fid);
@@ -1687,6 +1687,13 @@ async function scoreMatch(fid,force=false){
   document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));document.getElementById('matchCenter').classList.remove('hidden');document.body.classList.add('in-tournament','scoring-mode');
   renderMatchCenter(fid);window.scrollTo(0,0);resumeMatchPrompt(fid);
 }
+// Keep this phone's scoring lock alive. If another phone now holds the match, say so in a box that
+// stays until the scorer closes it (a quick toast was easy to miss and looked like a random jump).
+function checkScoringLock(fid){if(lockFid!==fid)return;rpc('rcs_claim_match',{p_fixture:fid}).then(x=>{if(!x||x.ok||lockFid!==fid)return;stopScoringLock(false);openMatch(fid);
+  const f=cache.fixtures.find(y=>y.id===fid),own=f&&canManageFixture(f);
+  const d=modal('lockModal',`<h3>🔒 Scoring moved to another phone</h3><p><b>@${esc(x.locked_by||'another scorer')}</b> is now scoring this match, so this phone has switched to the live scorecard. Only one phone can score a match at a time, so scores never conflict.</p><p class="small">This happens when someone takes over scoring, or when this phone was asleep for more than 10 minutes and another phone started scoring.</p><div class="modal-actions"><button class="secondary" onclick="closeModal('lockModal')">Watch live</button><button class="primary" onclick="closeModal('lockModal');scoreMatch('${esc(fid)}',${own?'true':'false'})">${own?'Take over scoring':'Try scoring again'}</button></div>`);d.dataset.sticky=1}).catch(()=>{})}
+// Check straight away when the phone wakes up, before the scorer taps a ball.
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&lockFid)checkScoringLock(lockFid)});
 function stopScoringLock(release=true){clearInterval(lockTimer);lockTimer=null;if(lockFid&&release){const fid=lockFid;rpc('rcs_release_match',{p_fixture:fid}).catch(()=>{})}lockFid=''}
 window.addEventListener('pagehide',()=>{if(lockFid){const c=cfg();try{fetch(c.url+'/rest/v1/rpc/rcs_release_match',{method:'POST',keepalive:true,headers:apiHeaders({'Content-Type':'application/json'}),body:JSON.stringify({p_fixture:lockFid})})}catch{}}});
 function takeComment(){const e=document.getElementById('scComment');const v=(e?.value||'').trim();if(e)e.value='';return v}
