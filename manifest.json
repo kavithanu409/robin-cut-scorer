@@ -12,14 +12,14 @@
   "theme_color": "#071a57",
   "icons": [
   {
-    "src": "./robin-crick-icon-192.jpg",
+    "src": "./robin-crick-icon-192.png",
     "sizes": "192x192",
-    "type": "image/jpeg"
+    "type": "image/png"
   },
   {
-    "src": "./robin-crick-icon-512.jpg",
+    "src": "./robin-crick-icon-512.png",
     "sizes": "512x512",
-    "type": "image/jpeg"
+    "type": "image/png"
   }
 ]
 }
