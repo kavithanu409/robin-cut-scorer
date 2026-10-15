@@ -496,7 +496,11 @@ async function openTournamentFixtureForm(tid){
 
 
 function matchStateKey(fid){return 'RCS57_MATCH_STATE_'+fid}
+// V93: copies kept in memory too, so scoring works even when this phone's site storage is full
+// (a full storage made toss/striker picks silently not save and skipped the start-of-match setup).
+const memMatchStates=new Map();
 function loadMatchState(fid){
+  if(memMatchStates.has(fid))return JSON.parse(memMatchStates.get(fid));
   try{
     const direct=JSON.parse(localStorage.getItem(matchStateKey(fid))||'null');
     if(direct)return direct;
@@ -508,8 +512,9 @@ function saveMatchState(st){
   if(st.history?.length>30)st.history=st.history.slice(-30);
   // V83: one copy per match only. The old all-matches copy (RCS_MATCH_STATES_V73) doubled the
   // storage used and is now read only as a legacy fallback.
-  const data=JSON.stringify(st);
+  const data=JSON.stringify(st);memMatchStates.set(st.fixtureId,data);
   try{localStorage.setItem(matchStateKey(st.fixtureId),data);return true}catch{}
+  for(let step=0;step<=4;step++){freeLocalSpace(step,matchStateKey(st.fixtureId));try{localStorage.setItem(matchStateKey(st.fixtureId),data);return true}catch{}}
   // Storage full: drop the legacy copy and other completed matches (they are rebuilt from Supabase
   // when reopened), then retry, so the match being scored can always save.
   try{
@@ -722,8 +727,9 @@ async function undoLastDelivery(fid){const st=loadMatchState(fid);if(!st||!st.hi
    and an older match summary can never overwrite a newer one. */
 const CLOUD_QUEUE_KEY='RCS_CLOUD_QUEUE_V82';
 let cloudFlush=null,cloudState={status:'ok',pending:0,error:''};
-function cloudQueue(){try{const q=JSON.parse(localStorage.getItem(CLOUD_QUEUE_KEY)||'[]');return Array.isArray(q)?q:[]}catch{return []}}
-function setCloudQueue(q){try{localStorage.setItem(CLOUD_QUEUE_KEY,JSON.stringify(q))}catch{}}
+let memCloudQueue=null;
+function cloudQueue(){if(memCloudQueue)return JSON.parse(memCloudQueue);try{const q=JSON.parse(localStorage.getItem(CLOUD_QUEUE_KEY)||'[]');return Array.isArray(q)?q:[]}catch{return []}}
+function setCloudQueue(q){const d=JSON.stringify(q);memCloudQueue=d;for(let step=-1;step<=4;step++){if(step>=0)freeLocalSpace(step,CLOUD_QUEUE_KEY);try{localStorage.setItem(CLOUD_QUEUE_KEY,d);return}catch{}}}
 function cloudStatusText(){const s=cloudState;return s.status==='saving'?`☁ Saving to cloud… (${s.pending} pending)`:s.status==='error'?`⚠ Not saved to cloud yet (${s.pending} pending). It will retry automatically. ${esc(s.error)}`:'☁ All scores saved to cloud'}
 function setCloudState(status,pending,error=''){cloudState={status,pending,error};const e=document.getElementById('mcCloud');if(e){e.className='status '+(status==='error'?'err':status==='saving'?'info':'ok');e.innerHTML=cloudStatusText()}}
 function queueCloudJob(job){
@@ -900,18 +906,35 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V92';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V93';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
 let session=null,me={profile:null,roles:{}},authReady=false;
-function loadSession(){try{session=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{session=null}return session}
+function loadSession(){try{session=JSON.parse(localStorage.getItem(AUTH_KEY)||'null')}catch{session=null}
+  // V93: if the stored login is missing (storage full or cleared), the cookie copy of the refresh token
+  // signs the user back in on the next refresh instead of logging them out.
+  if(!session?.refresh_token){const rt=loginCookie();if(rt)session={access_token:'',refresh_token:rt,expires_at:0,user:null}}
+  return session}
+const LOGIN_COOKIE='rc_rt';
+function loginCookie(){const m=document.cookie.match(/(?:^|; )rc_rt=([^;]*)/);return m?decodeURIComponent(m[1]):''}
+function saveLoginCookie(rt){try{const path=location.pathname.replace(/[^/]*$/,'')||'/';document.cookie=rt?`${LOGIN_COOKIE}=${encodeURIComponent(rt)}; path=${path}; max-age=${60*60*24*60}; samesite=lax${location.protocol==='https:'?'; secure':''}`:`${LOGIN_COOKIE}=; path=${path}; max-age=0`}catch{}}
 // V85: a full localStorage (old photos + backups) made the login silently not save, so a refresh logged
 // people out. Space is freed from copies that also live in IndexedDB/Supabase until the session fits.
-function freeLocalSpace(step){try{if(step===0)localStorage.removeItem(DURABLE_BACKUP_KEY);else if(step===1)LOCAL_KEYS.forEach(k=>localStorage.removeItem(CACHE_PREFIX+k));else if(step===2){const o=photoStore();Object.keys(o).forEach(id=>{if(photoRow(id)[1]?.photo_url)delete o[id]});(photoMemo=o,localStorage.setItem(PHOTO_KEY,JSON.stringify(o)))}}catch{}}
+function freeLocalSpace(step,keep=''){try{
+  if(step===0){localStorage.removeItem(DURABLE_BACKUP_KEY);localStorage.removeItem('RCS_MATCH_STATES_V73');legacy.forEach(k=>localStorage.removeItem(k))}
+  else if(step===1)LOCAL_KEYS.forEach(k=>localStorage.removeItem(CACHE_PREFIX+k));
+  else if(step===2){const o=photoStore();Object.keys(o).forEach(id=>{if(photoRow(id)[1]?.photo_url)delete o[id]});(photoMemo=o,localStorage.setItem(PHOTO_KEY,JSON.stringify(o)))}
+  // Match copies on this phone are rebuilt from Supabase when reopened: drop finished ones first,
+  // then any other match that is not being scored here and has nothing waiting to upload.
+  else if(step>=3){const busy=new Set(cloudQueue().map(j=>j.fid||j.fixtureId||'').filter(Boolean));if(lockFid)busy.add(lockFid);
+    for(let i=localStorage.length-1;i>=0;i--){const k=localStorage.key(i);if(!k||k===keep||!k.startsWith('RCS57_MATCH_STATE_'))continue;const fid=k.slice(18);if(busy.has(fid))continue;
+      try{if(step===4||JSON.parse(localStorage.getItem(k)||'null')?.completed)localStorage.removeItem(k)}catch{}}}
+}catch{}}
 function saveSession(s){session=s&&s.access_token?{access_token:s.access_token,refresh_token:s.refresh_token,expires_at:s.expires_at||Math.floor(Date.now()/1000)+(s.expires_in||3600),user:s.user||session?.user||null}:null;
-  if(!session){try{localStorage.removeItem(AUTH_KEY)}catch{}return}
-  for(let step=0;step<=3;step++){try{localStorage.setItem(AUTH_KEY,JSON.stringify(session));return}catch{if(step<3)freeLocalSpace(step)}}
+  if(!session){saveLoginCookie('');try{localStorage.removeItem(AUTH_KEY)}catch{}return}
+  saveLoginCookie(session.refresh_token);
+  for(let step=0;step<=5;step++){try{localStorage.setItem(AUTH_KEY,JSON.stringify(session));return}catch{if(step<5)freeLocalSpace(step)}}
   console.warn('Could not keep the login on this device: storage is full.')}
 function myId(){return session?.user?.id||''}
 function myName(){return me.profile?.username||session?.user?.user_metadata?.username||session?.user?.email||''}
@@ -1873,7 +1896,7 @@ async function deleteTournament(id){
     if(!await del('tournaments',{id}))throw Error(DELETE_BLOCKED);
     rememberDeleted([id,...teams.map(x=>x.id),...players.map(x=>x.id),...fixtures.map(x=>x.id),...matches.map(x=>x.id)]);
     const mids=new Set(matches.map(m=>m.id));cache.deliveries=cache.deliveries.filter(d=>!mids.has(d.match_id));purgeDeleted();
-    cleanupTournamentLocal(id);fixtures.forEach(f=>localStorage.removeItem(matchStateKey(f.id)));await saveSnapshotsNow();
+    cleanupTournamentLocal(id);fixtures.forEach(f=>(memMatchStates.delete(f.id),localStorage.removeItem(matchStateKey(f.id))));await saveSnapshotsNow();
     show('tournaments');toast('✓ Tournament deleted permanently.');
   }catch(e){toast('Delete failed: '+esc(friendlyError(e)),'err')}
 }
