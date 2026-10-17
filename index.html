@@ -906,7 +906,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V94';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V95';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -1482,21 +1482,24 @@ function renderTournament(id,tab='HOME'){
   if(M.live.length)startLivePoll(()=>{if(view.kind==='tournament'&&view.id===id&&['HOME','MATCHES','MATCHES_ALL'].includes(view.tab))renderTournament(id,view.tab)},M.live.slice(0,6).map(f=>f.id),20000);
 }
 function miniScore(fid){const st=viewState(fid),f=cache.fixtures.find(x=>x.id===fid);if(!st||!f)return {};const cards=matchCards(st,f),by={};cards.forEach(c=>{by[c.team]=`${c.runs}/${c.wickets} (${oversText(c.legal,c.bpo)})`});return by}
-// Home "Live now": up to 2 tournaments and 2 matches being scored right now, for every visitor.
+// Home "Live now": always 2 tournaments and 2 matches for every visitor; live ones first, the most recent fill the rest.
 // A match that was never ended stops counting as live after 12 hours without a ball.
 let livePollKey='';
 function liveFixtures(){const cut=Date.now()-12*3600e3,last=f=>Date.parse(matchForFixture(f.id)?.updated_at||'')||0;
   return cache.fixtures.filter(f=>matchStatus(f.id)==='live'&&last(f)>cut).sort((a,b)=>last(b)-last(a))}
 function renderLiveNow(){const el=document.getElementById('liveNow');if(!el)return;
-  const live=liveFixtures(),seen=new Set(),tours=[];
-  for(const f of live){if(f.tournament_id&&!seen.has(f.tournament_id)){seen.add(f.tournament_id);const t=cache.tournaments.find(x=>x.id===f.tournament_id);if(t)tours.push(t)}}
-  const tl=tours.slice(0,2),ml=live.slice(0,2);
-  el.classList.toggle('hidden',!live.length);
-  el.innerHTML=live.length?`<h3><span class="st-pill live">● LIVE</span> Live now</h3>${tl.length?`<div class="section-title">Tournaments</div>${tl.map(tCard).join('')}`:''}<div class="section-title">Matches</div>${ml.map(matchCard).join('')}`:'';
+  const live=liveFixtures(),last=f=>Date.parse(matchForFixture(f.id)?.updated_at||'')||0;
+  const recent=cache.fixtures.filter(f=>matchForFixture(f.id)&&matchStatus(f.id)!=='upcoming'&&!live.includes(f)).sort((a,b)=>last(b)-last(a));
+  const seen=new Set(),tours=[],addT=t=>{if(t&&!seen.has(t.id)){seen.add(t.id);tours.push(t)}};
+  for(const f of live.concat(recent))if(f.tournament_id)addT(cache.tournaments.find(x=>x.id===f.tournament_id));
+  cache.tournaments.slice().sort((a,b)=>String(b.created_at||'').localeCompare(String(a.created_at||''))).forEach(addT);
+  const tl=tours.slice(0,2),ml=live.concat(recent).slice(0,2),shown=live.slice(0,2).map(f=>f.id);
+  el.classList.toggle('hidden',!tl.length&&!ml.length);
+  el.innerHTML=`<h3>${live.length?'<span class="st-pill live">● LIVE</span> Live now':'Recent'}</h3>${tl.length?`<div class="section-title">Tournaments</div>${tl.map(tCard).join('')}`:''}${ml.length?`<div class="section-title">Matches</div>${ml.map(matchCard).join('')}`:''}`;
   // Keep the scores ticking while the home page is open (every 20 seconds).
-  const home=!document.getElementById('explore')?.classList.contains('hidden'),key=ml.map(f=>f.id).join(',');
-  if(!home||!ml.length){if(livePollKey){livePollKey='';if(home)stopLivePoll()}return}
-  if(key!==livePollKey||!livePoll){livePollKey=key;startLivePoll(()=>{if(!document.getElementById('explore').classList.contains('hidden'))renderLiveNow()},ml.map(f=>f.id),20000)}}
+  const home=!document.getElementById('explore')?.classList.contains('hidden'),key=shown.join(',');
+  if(!home||!shown.length){if(livePollKey){livePollKey='';if(home)stopLivePoll()}return}
+  if(key!==livePollKey||!livePoll){livePollKey=key;startLivePoll(()=>{if(!document.getElementById('explore').classList.contains('hidden'))renderLiveNow()},shown,20000)}}
 function matchCard(f){
   const s=matchStatus(f.id),sc=s==='upcoming'?{}:miniScore(f.id),res=s==='completed'?resultTextFor(f.id):'',st=s==='live'?viewState(f.id):null;
   const tag=s==='live'?'<span class="st-pill live">● LIVE</span>':s==='completed'?'<span class="st-pill done">RESULT</span>':'<span class="st-pill up">UPCOMING</span>';
