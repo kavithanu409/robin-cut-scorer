@@ -185,7 +185,7 @@ html.restoring main::before{content:'Loading…';display:block;text-align:center
 <body>
 <script>if(/^#(t|match|score|team|player|sec)=/.test(location.hash)){document.documentElement.classList.add('restoring');setTimeout(()=>document.documentElement.classList.remove('restoring'),15000)}</script>
 <header class="site-header"><div class="brand-wrap" onclick="show('explore')" style="cursor:pointer"><img class="brand-logo" src="robin-crick-logo.jpg" alt="ROBIN CRICK logo" onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'brand-logo brand-fallback',textContent:'🏏'}))"><div><h1>ROBIN CRICK</h1><p>Cricket Tournaments &amp; Live Scoring · V92</p></div></div><button type="button" id="accountBtn" onclick="openAuth()">Log in</button></header>
-<nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" onclick="show('connection',this)">Connection</button></nav>
+<nav class="mainnav"><button type="button" data-sec="explore" class="active" onclick="show('explore',this)">Explore</button><button type="button" data-sec="tournaments" onclick="show('tournaments',this)">Tournaments</button><button type="button" data-sec="teams" onclick="show('teams',this)">Teams</button><button type="button" data-sec="players" onclick="show('players',this)">Players</button><button type="button" data-sec="fixtures" onclick="show('fixtures',this)">Fixtures</button><button type="button" data-sec="onlyMatches" onclick="show('onlyMatches',this)">Only Matches</button><button type="button" data-sec="connection" class="owner-only hidden" onclick="show('connection',this)">Connection</button></nav>
 <main>
 <section id="explore">
 <div id="syncBanner" class="status info hidden"></div>
@@ -906,7 +906,7 @@ document.addEventListener('visibilitychange',()=>{
    match centre (Summary/Live, Scorecard, Overs, Info, Highlights, Commentary)
    and the single-screen scoring page. Loaded after the V83 script, so the
    functions below replace the V83 versions of the same name. */
-const APP_NAME='ROBIN CRICK',APP_VERSION='V93';
+const APP_NAME='ROBIN CRICK',APP_VERSION='V94';
 
 /* ---------- Accounts (Supabase Auth over REST) ---------- */
 const AUTH_KEY='RC_AUTH_V84';
@@ -937,6 +937,8 @@ function saveSession(s){session=s&&s.access_token?{access_token:s.access_token,r
   for(let step=0;step<=5;step++){try{localStorage.setItem(AUTH_KEY,JSON.stringify(session));return}catch{if(step<5)freeLocalSpace(step)}}
   console.warn('Could not keep the login on this device: storage is full.')}
 function myId(){return session?.user?.id||''}
+const SITE_OWNER_EMAIL='nigeshanthkavis@gmail.com';
+function isSiteOwner(){return String(session?.user?.email||'').toLowerCase()===SITE_OWNER_EMAIL}
 function myName(){return me.profile?.username||session?.user?.user_metadata?.username||session?.user?.email||''}
 function apiHeaders(extra={}){const c=cfg();return {apikey:c.key,Authorization:'Bearer '+(session?.access_token||c.key),'Accept-Profile':'public',...extra}}
 function siteUrl(){return location.origin+location.pathname}
@@ -1359,6 +1361,8 @@ function renderAuthUI(){
 function applyAuthGates(){
   document.querySelectorAll('.needs-login').forEach(e=>e.classList.toggle('hidden',!myId()));
   document.querySelectorAll('.login-prompt').forEach(e=>e.classList.toggle('hidden',!!myId()));
+  document.querySelectorAll('.owner-only').forEach(e=>e.classList.toggle('hidden',!isSiteOwner()));
+  if(!isSiteOwner()&&!document.getElementById('connection')?.classList.contains('hidden'))show('explore');
   const tc=document.getElementById('tCreateForm');if(tc&&myId()&&!canCreate())tc.innerHTML='<div class="status warn">Your account cannot create tournaments yet. Ask the site administrator to enable it.</div>';
 }
 function loginPrompt(what){return `<div class="login-prompt card"><b>Log in to ${esc(what)}</b><p class="small">Everyone can view tournaments, live scores and scorecards. Creating and scoring needs an account.</p><button class="primary" type="button" onclick="openAuth('login')">Log in</button> <button class="secondary" type="button" onclick="openAuth('signup')">Create account</button></div>`}
@@ -1446,6 +1450,7 @@ const TOUR_TABS=[['HOME','Home'],['TEAMS','Teams'],['MATCHES','Matches'],['POINT
 function tournamentLink(id){return siteUrl()+'#t='+id}
 function openTournament(id){currentTournament=id;view={kind:'tournament',id,tab:'HOME'};show('centre');renderTournament(id,'HOME')}
 function show(id,btn){
+  if(id==='connection'&&!isSiteOwner())id='explore',btn=null;
   document.querySelectorAll('main>section').forEach(x=>x.classList.add('hidden'));
   const s=document.getElementById(id);if(s)s.classList.remove('hidden');
   if(btn||id!=='centre'){document.querySelectorAll('nav.mainnav button').forEach(x=>x.classList.toggle('active',btn?x===btn:x.dataset.sec===id))}
